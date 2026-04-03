@@ -1,39 +1,41 @@
 package com.githubzs.plataforma_reservas_medicas.domine.repositories;
 
-
-import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
+import com.githubzs.plataforma_reservas_medicas.domine.dto.DoctorRankingStatsDto;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
+
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     
+    Optional<Doctor> findByDocumentNumber(String documentNumber);
+
     Page<Doctor> findByStatusAndSpecialty_Id(DoctorStatus status, UUID specialtyId, Pageable pageable);
 
     boolean existsByIdAndStatus(UUID id, DoctorStatus status);
 
-    // Contar citas completadas por doctor en un rango de fechas
+    // Obtener ranking de profesionales por cantidad de citas completadas (Ordenamos y no ponemos el ranking directamente porque JPQL no soporta funciones de ventana)
     @Query("""
-        SELECT d.id, d.fullName, COUNT(a.id) AS completedCount
-        FROM Doctor d
-        JOIN d.appointments a
-        WHERE a.status = 'COMPLETED'
-        AND a.startAt BETWEEN :from AND :to
-        GROUP BY d.id, d.fullName
-        ORDER BY completedCount DESC
+     SELECT new com.githubzs.plataforma_reservas_medicas.domine.dto.DoctorRankingStatsDto(
+      d.id,
+      d.fullName,
+      COUNT(a)
+     )
+     FROM Doctor d
+     LEFT JOIN d.appointments a
+     ON a.status = com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.COMPLETED
+     GROUP BY d.id, d.fullName
+     ORDER BY COUNT(a) DESC
     """)
-    Page<Object[]> rankDoctorsByCompletedAppointments(
-        @Param("from") LocalDateTime from,
-        @Param("to")   LocalDateTime to,
-        Pageable pageable
-    );
+    List<DoctorRankingStatsDto> rankDoctorsByCompletedAppointments();
 
 }
 

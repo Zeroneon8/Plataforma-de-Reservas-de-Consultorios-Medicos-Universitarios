@@ -72,13 +72,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      SELECT a FROM Appointment a
      WHERE a.doctor.id = :doctorId
      AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
-     AND a.startAt >= :start
-     AND a.startAt < :end
+     AND a.startAt >= :from
+     AND a.startAt < :to
     """)
     List<Appointment> findAppointmentsByDoctorBetween(
         @Param("doctorId") UUID doctorId,
-        @Param("start") LocalDateTime start,
-        @Param("end") LocalDateTime end
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
     );
 
 }

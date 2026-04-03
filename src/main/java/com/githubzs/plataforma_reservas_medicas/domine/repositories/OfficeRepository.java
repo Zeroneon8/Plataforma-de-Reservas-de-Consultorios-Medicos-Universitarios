@@ -30,15 +30,15 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
      )
      FROM Office o
      LEFT JOIN o.appointments a
-     ON a.startAt >= :start
-     AND a.startAt < :end
+     ON a.startAt >= :from
+     AND a.startAt < :to
      AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
      GROUP BY o.id
      ORDER BY COUNT(a) DESC
     """)
     List<OfficeOccupancyDto> calculateOfficeOccupancyBetween(
-        @Param("start") LocalDateTime start,
-        @Param("end") LocalDateTime end
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
     );
     
 }
