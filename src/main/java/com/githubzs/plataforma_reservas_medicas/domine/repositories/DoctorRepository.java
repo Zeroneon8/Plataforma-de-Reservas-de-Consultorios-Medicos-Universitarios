@@ -15,7 +15,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     
-    Page<Doctor> findByStatusAndSpecialty_Id(DoctorStatus status, UUID specialty, Pageable pageable);
+    Page<Doctor> findByStatusAndSpecialty_Id(DoctorStatus status, UUID specialtyId, Pageable pageable);
 
     boolean existsByIdAndStatus(UUID id, DoctorStatus status);
 
@@ -33,36 +33,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
         @Param("from") LocalDateTime from,
         @Param("to")   LocalDateTime to,
         Pageable pageable
-    );
-
-    @Query("""
-    SELECT COUNT(a) > 0 FROM Appointment a
-    WHERE a.doctor.id = :doctorId
-    AND a.status NOT IN ('CANCELLED')
-    AND a.startAt < :endAt
-    AND a.endAt > :startAt
-    """)
-    boolean existsOverlapForDoctor(
-    @Param("doctorId") UUID doctorId,
-    @Param("startAt") LocalDateTime startAt,
-    @Param("endAt") LocalDateTime endAt
-    );
-
-
-    // HU-07 (al editar — excluye la cita actual)
-    @Query("""
-        SELECT COUNT(a) > 0 FROM Appointment a
-        WHERE a.doctor.id = :doctorId
-        AND a.id <> :excludeId
-        AND a.status NOT IN ('CANCELLED')
-        AND a.startAt < :endAt
-        AND a.endAt > :startAt
-    """)
-    boolean existsOverlapForDoctorExcluding(
-        @Param("doctorId") UUID doctorId,
-        @Param("startAt") LocalDateTime startAt,
-        @Param("endAt") LocalDateTime endAt,
-        @Param("excludeId") UUID excludeId
     );
 
 }
