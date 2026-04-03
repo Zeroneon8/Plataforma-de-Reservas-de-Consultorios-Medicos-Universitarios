@@ -70,7 +70,7 @@ public class Patient {
     private Instant createdAt;
 
     @PastOrPresent
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "patient")

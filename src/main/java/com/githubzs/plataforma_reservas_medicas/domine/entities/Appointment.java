@@ -14,7 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
@@ -57,12 +56,10 @@ public class Appointment {
     private AppointmentType appointmentType;
     
     @NotNull
-    @FutureOrPresent
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
 
     @NotNull
-    @FutureOrPresent
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
