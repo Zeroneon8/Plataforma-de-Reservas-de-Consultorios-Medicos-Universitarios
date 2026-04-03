@@ -1,62 +1,62 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
+import java.time.LocalDateTime;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
+import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.EnumType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table (name = "doctors")
+@Table (name = "appointments")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Doctor {
+public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    
+    @NotNull
+    @FutureOrPresent
+    @Column(name = "start_at", nullable = false)
+    private LocalDateTime startAt;
 
-    @NotBlank
-    @Size(max = 100)
-    @Column(name = "full_name", nullable = false, length = 100)
-    private String fullName;
+    @NotNull
+    @FutureOrPresent
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
 
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "license_number", nullable = false, unique = true, length = 50)
-    private String licenseNumber;
-
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "document_number", nullable = false, unique = true, length = 50)
-    private String documentNumber;
-
-    @NotBlank
-    @Size(max = 320)
-    @Column(nullable = false, unique = true, length = 320)
-    private String email;
-
+    // Se usa EnumType.STRING para almacenar el nombre del estado en lugar de su ordinal.
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DoctorStatus status;
+    private AppointmentStatus status;
+
+    @Size(max = 1000)
+    @Column(name = "cancel_reason", length = 1000)
+    private String cancelReason;
+
+    @Size(max = 1000)
+    @Column(length = 1000)
+    private String observations;
 
     @NotNull
     @PastOrPresent

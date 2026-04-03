@@ -1,6 +1,5 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
-
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,10 +7,16 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,28 +32,41 @@ public class Patient {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, name="full_name")
+    @NotBlank
+    @Size(max = 100)
+    @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(nullable= false, name= "email", unique= true)
+    @NotBlank
+    @Size(max = 320)
+    @Column(nullable = false, length = 320)
     private String email;
 
-    @Column(nullable = false, name = "phone_number", unique=true)
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber;
 
-    @Column(nullable = false, name = "document_number", unique=true) 
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "document_number", nullable = false, unique = true, length = 50)
     private String documentNumber;
 
-    @Column(nullable = true, name = "student_code", unique=true)
+    @Size(max = 50)
+    @Column(name = "student_code", unique = true, length = 50)
     private String studentCode;
 
-    @Column(nullable = false, name = "status")
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PatientStatus status;
 
-    @Column(nullable = false, name = "created_at")
+    @NotNull
+    @PastOrPresent
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(nullable = false, name = "updated_at")
+    @PastOrPresent
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
 }

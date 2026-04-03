@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,10 +25,12 @@ public class Specialty {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, name="name")
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    @Column(nullable= false, name= "description")
+    @Size(max = 255)
+    @Column(length = 255)
     private String description;
-    
 }
