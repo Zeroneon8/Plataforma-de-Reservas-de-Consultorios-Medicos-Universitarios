@@ -34,6 +34,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Doctor {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -94,4 +95,5 @@ public class Doctor {
         schedules.add(schedule);
         schedule.setDoctor(this);
     }
+
 }

@@ -14,6 +14,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
+    
     Page<Appointment> findByPatient_IdAndStatus(UUID patientId, AppointmentStatus status, Pageable pageable);
     
     Page<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);

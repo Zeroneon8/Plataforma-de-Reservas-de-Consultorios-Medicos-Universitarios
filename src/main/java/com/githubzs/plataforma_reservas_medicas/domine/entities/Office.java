@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Office {
+
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -76,4 +77,5 @@ public class Office {
         appointments.add(appointment);
         appointment.setOffice(this);
     }
+    
 }

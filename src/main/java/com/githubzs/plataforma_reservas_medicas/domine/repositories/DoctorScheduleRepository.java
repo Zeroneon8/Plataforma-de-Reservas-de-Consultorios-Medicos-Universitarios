@@ -19,7 +19,6 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule, 
 
     List<DoctorSchedule> findByDoctorIdAndDayOfWeek(UUID doctorId, DayOfWeek dayOfWeek);
 
-
     // HU-06 — slots ocupados del doctor en una fecha (para calcular libres)
     @Query("""
         SELECT a.startAt, a.endAt FROM Appointment a
@@ -34,4 +33,5 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule, 
         @Param("startOfDay") LocalDateTime startOfDay,
         @Param("endOfDay") LocalDateTime endOfDay
     );
+    
 }

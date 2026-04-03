@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Appointment {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Patient {
+
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -81,4 +82,5 @@ public class Patient {
         appointments.add(appointment);
         appointment.setPatient(this);
     }
+    
 }

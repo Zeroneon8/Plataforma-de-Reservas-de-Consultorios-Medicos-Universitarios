@@ -33,7 +33,5 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
         @Param("startAt") LocalDateTime startAt,
         @Param("endAt") LocalDateTime endAt
     );
-
-
     
 }

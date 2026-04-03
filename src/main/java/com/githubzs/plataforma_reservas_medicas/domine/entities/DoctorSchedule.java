@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DoctorSchedule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -47,4 +48,5 @@ public class DoctorSchedule {
     @NotNull
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
+    
 }

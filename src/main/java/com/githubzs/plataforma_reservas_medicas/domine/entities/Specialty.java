@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Specialty {
+
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -45,4 +46,5 @@ public class Specialty {
         doctors.add(doctor);
         doctor.setSpecialty(this);
     }
+    
 }
