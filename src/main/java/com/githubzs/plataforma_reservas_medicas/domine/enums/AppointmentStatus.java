@@ -7,3 +7,4 @@ public enum AppointmentStatus {
     CANCELLED,
     NO_SHOW
 }
+
