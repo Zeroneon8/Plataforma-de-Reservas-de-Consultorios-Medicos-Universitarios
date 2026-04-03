@@ -45,4 +45,10 @@ public class AppointmentType {
     @OneToMany(mappedBy = "appointmentType")
     @Builder.Default
     private Set<Appointment> appointments = new HashSet<>();
+
+    public void addAppointment(Appointment appointment) {
+        appointments.add(appointment);
+        appointment.setAppointmentType(this);
+    }
+
 }

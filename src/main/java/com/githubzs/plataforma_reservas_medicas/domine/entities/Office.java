@@ -71,4 +71,9 @@ public class Office {
     @OneToMany(mappedBy = "office")
     @Builder.Default
     private Set<Appointment> appointments = new HashSet<>();
+
+    public void addAppointment(Appointment appointment) {
+        appointments.add(appointment);
+        appointment.setOffice(this);
+    }
 }

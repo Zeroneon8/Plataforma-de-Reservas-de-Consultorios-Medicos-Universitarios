@@ -1,24 +1,24 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
-import java.time.LocalDateTime;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.NotNull;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -84,4 +84,5 @@ public class Appointment {
     @PastOrPresent
     @Column(name = "updated_at")
     private Instant updatedAt;
+    
 }

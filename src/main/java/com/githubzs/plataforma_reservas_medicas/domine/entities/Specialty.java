@@ -1,8 +1,8 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
-import java.util.UUID;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,4 +40,9 @@ public class Specialty {
     @OneToMany(mappedBy = "specialty")
     @Builder.Default
     private Set<Doctor> doctors = new HashSet<>();
+
+    public void addDoctor(Doctor doctor) {
+        doctors.add(doctor);
+        doctor.setSpecialty(this);
+    }
 }
