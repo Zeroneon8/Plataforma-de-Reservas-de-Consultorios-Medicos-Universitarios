@@ -1,12 +1,15 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
@@ -38,4 +41,8 @@ public class AppointmentType {
     @Positive
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;
+
+    @OneToMany(mappedBy = "appointmentType")
+    @Builder.Default
+    private Set<Appointment> appointments = new HashSet<>();
 }

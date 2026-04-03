@@ -12,12 +12,14 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,6 +35,26 @@ public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "patient_id", referencedColumnName = "id", nullable = false)
+    private Patient patient;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", referencedColumnName = "id", nullable = false)
+    private Doctor doctor;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "office_id", referencedColumnName = "id", nullable = false)
+    private Office office;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "appointment_type_id", referencedColumnName = "id", nullable = false)
+    private AppointmentType appointmentType;
     
     @NotNull
     @FutureOrPresent
@@ -44,7 +66,6 @@ public class Appointment {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    // Se usa EnumType.STRING para almacenar el nombre del estado en lugar de su ordinal.
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -2,6 +2,8 @@ package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
@@ -12,7 +14,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -59,6 +64,11 @@ public class Doctor {
     private DoctorStatus status;
 
     @NotNull
+    @ManyToOne
+    @JoinColumn(name = "specialty_id", referencedColumnName = "id", nullable = false)
+    private Specialty specialty;
+
+    @NotNull
     @PastOrPresent
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -66,4 +76,12 @@ public class Doctor {
     @PastOrPresent
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "doctor")
+    @Builder.Default
+    private Set<Appointment> appointments = new HashSet<>();
+
+    @OneToMany(mappedBy = "doctor")
+    @Builder.Default
+    private Set<DoctorSchedule> schedules = new HashSet<>();
 }

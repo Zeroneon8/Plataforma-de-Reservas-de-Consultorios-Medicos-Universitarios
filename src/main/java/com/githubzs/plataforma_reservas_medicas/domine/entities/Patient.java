@@ -1,6 +1,8 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
 import java.time.Instant;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
@@ -12,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
@@ -69,4 +72,8 @@ public class Patient {
     @PastOrPresent
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "patient")
+    @Builder.Default
+    private Set<Appointment> appointments = new HashSet<>();
 }

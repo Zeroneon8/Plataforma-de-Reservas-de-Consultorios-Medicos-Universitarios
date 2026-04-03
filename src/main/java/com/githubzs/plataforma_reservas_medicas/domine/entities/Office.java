@@ -2,6 +2,8 @@ package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 
@@ -12,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -63,5 +66,9 @@ public class Office {
 
     @PastOrPresent
     @Column(name = "updated_at")
-    private Instant updatedAt;    
+    private Instant updatedAt;
+    
+    @OneToMany(mappedBy = "office")
+    @Builder.Default
+    private Set<Appointment> appointments = new HashSet<>();
 }

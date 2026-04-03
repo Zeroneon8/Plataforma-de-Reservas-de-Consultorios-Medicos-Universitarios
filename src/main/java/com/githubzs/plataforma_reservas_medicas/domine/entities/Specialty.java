@@ -1,12 +1,15 @@
 package com.githubzs.plataforma_reservas_medicas.domine.entities;
 
 import java.util.UUID;
+import java.util.Set;
+import java.util.HashSet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -33,4 +36,8 @@ public class Specialty {
     @Size(max = 255)
     @Column(length = 255)
     private String description;
+
+    @OneToMany(mappedBy = "specialty")
+    @Builder.Default
+    private Set<Doctor> doctors = new HashSet<>();
 }
