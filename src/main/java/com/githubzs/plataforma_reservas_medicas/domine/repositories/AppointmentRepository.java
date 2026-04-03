@@ -3,6 +3,7 @@ package com.githubzs.plataforma_reservas_medicas.domine.repositories;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
     Page<Appointment> findByPatient_IdAndStatus(UUID patientId, AppointmentStatus status, Pageable pageable);
     
     Page<Appointment> findByStartAtBetween(LocalDateTime start, LocalDateTime end, Pageable pageable);
+
+    Optional<Appointment> findByIdAndStatus(UUID id, AppointmentStatus status);
 
     // Comprobar que un paciente no tenga citas activas que se crucen en el tiempo
      @Query("""
@@ -66,15 +69,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
 
     // Obtener citas de un doctor en un rango de fechas especifico
     @Query("""
-        SELECT a FROM Appointment a
-        WHERE a.doctor.id = :doctorId
-        AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
-        AND a.startAt >= :start
-        AND a.startAt < :end
+     SELECT a FROM Appointment a
+     WHERE a.doctor.id = :doctorId
+     AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
+     AND a.startAt >= :start
+     AND a.startAt < :end
     """)
     List<Appointment> findAppointmentsByDoctorBetween(
         @Param("doctorId") UUID doctorId,
         @Param("start") LocalDateTime start,
         @Param("end") LocalDateTime end
     );
+
 }
