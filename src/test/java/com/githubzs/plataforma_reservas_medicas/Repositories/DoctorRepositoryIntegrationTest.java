@@ -2,7 +2,6 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
