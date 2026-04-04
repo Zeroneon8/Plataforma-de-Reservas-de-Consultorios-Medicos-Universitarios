@@ -52,7 +52,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         @Param("endAt") LocalDateTime endAt
     );
 
-    // Comprobar que una oficina no tenga citas activas que se crucen en el tiempo
+    // Comprobar que un consultorio no tenga citas activas que se crucen en el tiempo
     @Query("""
      SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END 
      FROM Appointment a
@@ -75,7 +75,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      AND a.startAt >= :from
      AND a.startAt < :to
     """)
-    List<Appointment> findAppointmentsByDoctorBetween(
+    List<Appointment> findByDoctorBetweenExcludeTo(
         @Param("doctorId") UUID doctorId,
         @Param("from") LocalDateTime from,
         @Param("to") LocalDateTime to

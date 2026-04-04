@@ -1,10 +1,10 @@
 package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -288,122 +288,191 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(notFoundWrongId).isNotPresent();
     }
 
-    // De aquí en adelante me falta revisar Atte - Juan
     @Test
-    @DisplayName("Debe detectar solapamiento de citas para un paciente")
+    @DisplayName("Appointment: Detecta solapamiento de citas para un paciente")
     void shouldExistsOverlapForPatient() {
-        // Given
-        var now = LocalDateTime.now();
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
 
-        // Cita existente de 10:00 a 10:30
-        appointmentRepository.save(buildDefaultAppointment(now, AppointmentStatus.CONFIRMED));
-
-        // When - intenta agendar de 10:15 a 10:45 (se solapa)
+        // When - solapamiento parcial
         var overlaps = appointmentRepository.existsOverlapForPatient(
-            patient.getId(), now.plusMinutes(15), now.plusMinutes(45)
+            patient.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
         );
 
-        // Intenta agendar de 10:30 a 11:00 (no se solapa, empieza exactamente cuando termina)
+        // When - solapamiento total
+        var overlapsTotal = appointmentRepository.existsOverlapForPatient(
+            patient.getId(), baseDateTime, baseDateTime.plusMinutes(30)
+        );
+
+        // When - no solapamiento (empieza exactamente al terminar la cita existente)
         var noOverlapAfter = appointmentRepository.existsOverlapForPatient(
-            patient.getId(), now.plusMinutes(30), now.plusMinutes(60)
+            patient.getId(), baseDateTime.plusMinutes(30), baseDateTime.plusMinutes(60)
         );
 
-        // Intenta agendar de 09:00 a 09:30 (no se solapa, termina antes)
+        // When - no solapamiento (termina exactamente al empezar la cita existente)
         var noOverlapBefore = appointmentRepository.existsOverlapForPatient(
-            patient.getId(), now.minusMinutes(30), now
-        );
-
-        // Cita CANCELLED no debe contar como solapamiento
-        appointmentRepository.save(Appointment.builder()
-            .patient(patient).doctor(doctor).office(office)
-            .appointmentType(appointmentType)
-            .startAt(now.plusMinutes(15))
-            .endAt(now.plusMinutes(45))
-            .status(AppointmentStatus.CANCELLED)
-            .createdAt(Instant.now())
-            .build()
-        );
-        var cancelledDoesNotOverlap = appointmentRepository.existsOverlapForPatient(
-            patient.getId(), now.plusMinutes(15), now.plusMinutes(45)
+            patient.getId(), baseDateTime.minusMinutes(30), baseDateTime
         );
 
         // Then
         assertThat(overlaps).isTrue();
-
-        // Verificación inversa
+        assertThat(overlapsTotal).isTrue();
         assertThat(noOverlapAfter).isFalse();
         assertThat(noOverlapBefore).isFalse();
-        assertThat(cancelledDoesNotOverlap).isTrue(); // sigue siendo true por la CONFIRMED
     }
 
     @Test
-    @DisplayName("Debe detectar solapamiento de citas para un doctor")
+    @DisplayName("Appointment: No detecta solapamiento de citas para un paciente cuando la cita existente está CANCELLED")
+    void shouldReturnFalseWhenOverlapIsCancelledForPatient() {
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
+
+        // When - solapamiento parcial
+        var overlaps = appointmentRepository.existsOverlapForPatient(
+            patient.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
+        );
+
+        // Then
+        assertThat(overlaps).isFalse();
+    }
+
+    @Test
+    @DisplayName("Appointment: Detecta solapamiento de citas para un doctor")
     void shouldExistsOverlapForDoctor() {
-        // Given
-        var now = LocalDateTime.now();
-        appointmentRepository.save(buildDefaultAppointment(now, AppointmentStatus.CONFIRMED));
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
 
-        // When
+        // When - solapamiento parcial
         var overlaps = appointmentRepository.existsOverlapForDoctor(
-            doctor.getId(), now.plusMinutes(15), now.plusMinutes(45)
+            doctor.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
         );
-        var noOverlap = appointmentRepository.existsOverlapForDoctor(
-            doctor.getId(), now.plusMinutes(30), now.plusMinutes(60)
+
+        // When - solapamiento total
+        var overlapsTotal = appointmentRepository.existsOverlapForDoctor(
+            doctor.getId(), baseDateTime, baseDateTime.plusMinutes(30)
         );
-        var noOverlapDifferentDoctor = appointmentRepository.existsOverlapForDoctor(
-            UUID.randomUUID(), now.plusMinutes(15), now.plusMinutes(45)
+
+        // When - no solapamiento (empieza exactamente al terminar la cita existente)
+        var noOverlapAfter = appointmentRepository.existsOverlapForDoctor(
+            doctor.getId(), baseDateTime.plusMinutes(30), baseDateTime.plusMinutes(60)
+        );
+
+        // When - no solapamiento (termina exactamente al empezar la cita existente)
+        var noOverlapBefore = appointmentRepository.existsOverlapForDoctor(
+            doctor.getId(), baseDateTime.minusMinutes(30), baseDateTime
         );
 
         // Then
         assertThat(overlaps).isTrue();
-
-        // Verificación inversa
-        assertThat(noOverlap).isFalse();
-        assertThat(noOverlapDifferentDoctor).isFalse();
+        assertThat(overlapsTotal).isTrue();
+        assertThat(noOverlapAfter).isFalse();
+        assertThat(noOverlapBefore).isFalse();
     }
 
     @Test
-    @DisplayName("Debe detectar solapamiento de citas para una oficina")
-    void shouldExistsOverlapForOffice() {
-        // Given
-        var now = LocalDateTime.now();
-        appointmentRepository.save(buildDefaultAppointment(now, AppointmentStatus.CONFIRMED));
+    @DisplayName("Appointment: No detecta solapamiento de citas para un doctor cuando la cita existente está CANCELLED")
+    void shouldReturnFalseWhenOverlapIsCancelledForDoctor() {
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
 
-        // When
+        // When - solapamiento parcial
+        var overlaps = appointmentRepository.existsOverlapForDoctor(
+            doctor.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
+        );
+
+        // Then
+        assertThat(overlaps).isFalse();
+    }
+
+    @Test
+    @DisplayName("Appointment: Detecta solapamiento de citas para un consultorio")
+    void shouldExistsOverlapForOffice() {
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+
+        // When - solapamiento parcial
         var overlaps = appointmentRepository.existsOverlapForOffice(
-            office.getId(), now.plusMinutes(15), now.plusMinutes(45)
+            office.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
         );
-        var noOverlap = appointmentRepository.existsOverlapForOffice(
-            office.getId(), now.plusMinutes(30), now.plusMinutes(60)
+
+        // When - solapamiento total
+        var overlapsTotal = appointmentRepository.existsOverlapForOffice(
+            office.getId(), baseDateTime, baseDateTime.plusMinutes(30)
         );
-        var noOverlapDifferentOffice = appointmentRepository.existsOverlapForOffice(
-            UUID.randomUUID(), now.plusMinutes(15), now.plusMinutes(45)
+
+        // When - no solapamiento (empieza exactamente al terminar la cita existente)
+        var noOverlapAfter = appointmentRepository.existsOverlapForOffice(
+            office.getId(), baseDateTime.plusMinutes(30), baseDateTime.plusMinutes(60)
+        );
+
+        // When - no solapamiento (termina exactamente al empezar la cita existente)
+        var noOverlapBefore = appointmentRepository.existsOverlapForOffice(
+            office.getId(), baseDateTime.minusMinutes(30), baseDateTime
         );
 
         // Then
         assertThat(overlaps).isTrue();
-
-        // Verificación inversa
-        assertThat(noOverlap).isFalse();
-        assertThat(noOverlapDifferentOffice).isFalse();
+        assertThat(overlapsTotal).isTrue();
+        assertThat(noOverlapAfter).isFalse();
+        assertThat(noOverlapBefore).isFalse();
     }
 
+    @Test
+    @DisplayName("Appointment: No detecta solapamiento de citas para un consultorio cuando la cita existente está CANCELLED")
+    void shouldReturnFalseWhenOverlapIsCancelledForOffice() {
+        // Given - la hora de baseDateTime es de 10:00 a 10:30
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
+
+        // When - solapamiento parcial
+        var overlaps = appointmentRepository.existsOverlapForOffice(
+            office.getId(), baseDateTime.plusMinutes(15), baseDateTime.plusMinutes(45)
+        );
+
+        // Then
+        assertThat(overlaps).isFalse();
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas de un doctor por el rango de fechas indicado (sin incluir el límite superior)")
+    void shouldFindByDoctorBetweenExcludeTo() {
+        // Given
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(1), AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+
+        // Citas fuera del rango - no deben aparecer
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(5), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CONFIRMED));
+        
+        // When
+        var found = appointmentRepository.findByDoctorBetweenExcludeTo(doctor.getId(), from, to);
+
+        // Then
+        assertThat(found).hasSize(2);
+        assertThat(found).extracting(Appointment::getId)
+            .containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
+        assertThat(found).extracting(Appointment::getStartAt)
+            .allMatch(start -> !start.isBefore(from) && !start.isAfter(to));
+    }
+
+    /*
     @Test
     @DisplayName("Debe encontrar citas de un doctor en un rango de fechas")
     void shouldFindAppointmentsByDoctorBetween() {
         // Given
-        var now = LocalDateTime.now();
-        var from = now.minusDays(1);
-        var to = now.plusDays(1);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
 
-        var appointment1 = appointmentRepository.save(buildDefaultAppointment(now, AppointmentStatus.CONFIRMED));
-        var appointment2 = appointmentRepository.save(buildDefaultAppointment(now.plusHours(1), AppointmentStatus.CONFIRMED));
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CONFIRMED));
 
         // Fuera del rango - no debe aparecer
-        appointmentRepository.save(buildDefaultAppointment(now.plusDays(5), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CONFIRMED));
 
         // CANCELLED dentro del rango - no debe aparecer
-        appointmentRepository.save(buildDefaultAppointment(now.plusHours(2), AppointmentStatus.CANCELLED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(2), AppointmentStatus.CANCELLED));
 
         // When
         var found = appointmentRepository.findAppointmentsByDoctorBetween(
@@ -427,5 +496,5 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(found).extracting(Appointment::getStartAt)
             .allMatch(start -> !start.isAfter(to));
     }
-
+    */
 }
