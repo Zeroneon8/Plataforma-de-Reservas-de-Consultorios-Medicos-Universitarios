@@ -83,7 +83,6 @@ public class OfficeRepositoryTest extends AbstractRepositoryIT{
             .build();
 
         var saved1 = officeRepository.save(office1);
-        var saved2 = officeRepository.save(office2);
 
         
         var found = officeRepository.findByStatus(OfficeStatus.AVAILABLE, Pageable.ofSize(10));
