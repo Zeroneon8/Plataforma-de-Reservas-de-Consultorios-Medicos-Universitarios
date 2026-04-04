@@ -46,8 +46,8 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     private PatientRepository patientRepository;
     
     // Datos base reutilizados en todos los tests
-    Doctor doctor;
-    Specialty specialty;
+    private Doctor doctor;
+    private Specialty specialty;
 
     @BeforeEach
     void setUp() {
@@ -559,4 +559,5 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
         // Then
         assertThat(result).isEmpty();
     }
+    
 }

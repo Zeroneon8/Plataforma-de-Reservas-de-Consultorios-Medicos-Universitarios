@@ -1,8 +1,12 @@
 package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +23,23 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
 
     @Autowired
     private DoctorScheduleRepository doctorScheduleRepository;
-
     @Autowired
     private DoctorRepository doctorRepository;
-
     @Autowired
     private SpecialtyRepository specialtyRepository;
     
-    @Test
-    @DisplayName("Deve retornar los horários de um médico para um dia específico")
-    public void shoulFindByDoctorIdAndDayOfWeek() {
-        
-        var specialty = specialtyRepository.save(
+    // Datos base reutilizados en todos los tests
+    private Doctor doctor;
+    private Specialty specialty;
+
+    @BeforeEach
+    void setUp() {
+        specialty = specialtyRepository.save(
             Specialty.builder()
                 .name("Medicina General")
                 .build()
         );
-
-        var doctor = doctorRepository.save(
+        doctor = doctorRepository.save(
             Doctor.builder()
                 .fullName("Dr. House")
                 .documentNumber("123456")
@@ -47,37 +50,98 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
                 .createdAt(Instant.now())
                 .build()
         );
+    }
 
+
+    @Test
+    @DisplayName("Doctor Schedule: Encuentra los horarios de un doctor por el día de la semana")
+    public void shouldFindByDoctorIdAndDayOfWeek() {
+        // Given
         var doctorSchedule = doctorScheduleRepository.save(
             DoctorSchedule.builder()
-                 .doctor(doctor)
-                 .dayOfWeek(java.time.DayOfWeek.MONDAY)
-                 .startTime(java.time.LocalTime.of(9, 0))
-                 .endTime(java.time.LocalTime.of(11, 0))
-                .build()
+             .doctor(doctor)
+             .dayOfWeek(DayOfWeek.MONDAY)
+             .startTime(LocalTime.of(9, 0))
+             .endTime(LocalTime.of(11, 0))
+             .build()
             );
 
         var doctorSchedule2 = doctorScheduleRepository.save(
             DoctorSchedule.builder()
              .doctor(doctor)
-             .dayOfWeek(java.time.DayOfWeek.MONDAY)
-             .startTime(java.time.LocalTime.of(13, 0))
-             .endTime(java.time.LocalTime.of(15, 0))
+             .dayOfWeek(DayOfWeek.MONDAY)
+             .startTime(LocalTime.of(13, 0))
+             .endTime(LocalTime.of(15, 0))
              .build()
             );
         
+        // When
         var schedules = doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(doctor.getId(), doctorSchedule.getDayOfWeek());
-
-        assertThat(schedules).isNotEmpty();
+        
+        // Then
         assertThat(schedules).hasSize(2);
-        assertThat(schedules.get(0).getDoctor().getId()).isEqualTo(doctor.getId());
-        assertThat(schedules.get(0).getDayOfWeek()).isEqualTo(doctorSchedule.getDayOfWeek());
+        assertThat(schedules).extracting(DoctorSchedule::getId)
+            .containsExactlyInAnyOrder(doctorSchedule.getId(), doctorSchedule2.getId());
+        assertThat(schedules).extracting(DoctorSchedule::getStartTime)
+            .containsExactlyInAnyOrder(doctorSchedule.getStartTime(), doctorSchedule2.getStartTime());
+        assertThat(schedules).extracting(DoctorSchedule::getEndTime)
+            .containsExactlyInAnyOrder(doctorSchedule.getEndTime(), doctorSchedule2.getEndTime());
+        assertThat(schedules).extracting(ds -> ds.getDoctor().getId())
+            .containsOnly(doctor.getId());
+        assertThat(schedules).extracting(DoctorSchedule::getDayOfWeek)
+            .containsOnly(doctorSchedule.getDayOfWeek());  
+    }
 
-        assertThat(schedules.get(1).getDoctor().getId()).isEqualTo(doctor.getId());
-        assertThat(schedules.get(1).getDayOfWeek()).isEqualTo(doctorSchedule2.getDayOfWeek());
+    @Test
+    @DisplayName("Doctor Schedule: No encuentra horarios para un doctor en un día sin horarios")
+    public void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDay() {
+        // Given
+        doctorScheduleRepository.save(
+            DoctorSchedule.builder()
+             .doctor(doctor)
+             .dayOfWeek(DayOfWeek.MONDAY)
+             .startTime(LocalTime.of(9, 0))
+             .endTime(LocalTime.of(11, 0))
+             .build()
+            );
+        
+        // When
+        var schedules = doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(doctor.getId(), DayOfWeek.TUESDAY);
+        
+        // Then
+        assertThat(schedules).isEmpty();
+    }
 
-        assertThat(schedules.get(0).getStartTime()).isEqualTo(doctorSchedule.getStartTime());
-        assertThat(schedules.get(0).getEndTime()).isEqualTo(doctorSchedule.getEndTime());    
+    @Test
+    @DisplayName("Doctor Schedule: No encuentra horarios cuando el día de la semana coincide pero el doctor es diferente")
+    public void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDayWithDifferentDoctor() {
+        // Given
+        doctorScheduleRepository.save(
+            DoctorSchedule.builder()
+             .doctor(doctor)
+             .dayOfWeek(DayOfWeek.MONDAY)
+             .startTime(LocalTime.of(9, 0))
+             .endTime(LocalTime.of(11, 0))
+             .build()
+            );
+
+        var Doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr. Adams") 
+                .documentNumber("122345")
+                .licenseNumber("LIC-002")
+                .email("dradams@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
+                .build()
+        );
+        
+        // When
+        var schedules = doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(Doctor2.getId(), DayOfWeek.MONDAY);
+        
+        // Then
+        assertThat(schedules).isEmpty();
     }
     
 }
