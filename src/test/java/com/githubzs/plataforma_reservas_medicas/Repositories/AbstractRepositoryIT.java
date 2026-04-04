@@ -22,4 +22,5 @@ public abstract class AbstractRepositoryIT {
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
     // Punto de extensión si necesitas helpers comunes
+    
 }

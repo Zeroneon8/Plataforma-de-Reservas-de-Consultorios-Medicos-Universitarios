@@ -29,7 +29,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRep
 
 
 
-public class OfficeRepositoryTest extends AbstractRepositoryIT{
+public class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
 
     @Autowired
     private OfficeRepository officeRepository;

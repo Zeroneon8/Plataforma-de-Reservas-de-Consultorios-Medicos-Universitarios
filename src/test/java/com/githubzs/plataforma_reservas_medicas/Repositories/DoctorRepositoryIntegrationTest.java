@@ -29,7 +29,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class DoctorRepositoryTest extends AbstractRepositoryIT {
+public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private DoctorRepository doctorRepository;

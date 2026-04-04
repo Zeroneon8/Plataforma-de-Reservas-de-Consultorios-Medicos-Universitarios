@@ -15,7 +15,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class DoctorScheduleRepositoryTest extends AbstractRepositoryIT {
+public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private DoctorScheduleRepository doctorScheduleRepository;

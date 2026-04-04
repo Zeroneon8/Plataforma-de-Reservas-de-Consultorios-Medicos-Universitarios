@@ -18,6 +18,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     
     Optional<Doctor> findByDocumentNumber(String documentNumber);
 
+    Page<Doctor> findBySpecialty_Id(UUID specialtyId, Pageable pageable);
+
     Page<Doctor> findByStatusAndSpecialty_Id(DoctorStatus status, UUID specialtyId, Pageable pageable);
 
     boolean existsByIdAndStatus(UUID id, DoctorStatus status);

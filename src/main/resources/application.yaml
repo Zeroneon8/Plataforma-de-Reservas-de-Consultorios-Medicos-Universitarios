@@ -2,6 +2,8 @@ spring:
   application:
     name: plataforma-reservas-medicas
 
+  #configuración de la conexión a la base de datos
+  #ahora mismo usa datos genéricos
   datasource:
     url: jdbc:postgresql://localhost:5432/test1
     username: admin

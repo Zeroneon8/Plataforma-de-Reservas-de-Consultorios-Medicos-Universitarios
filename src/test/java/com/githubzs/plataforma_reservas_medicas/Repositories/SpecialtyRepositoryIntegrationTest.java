@@ -24,7 +24,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class SpecialtyRepositoryTest extends AbstractRepositoryIT {
+public class SpecialtyRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private SpecialtyRepository specialtyRepository;
