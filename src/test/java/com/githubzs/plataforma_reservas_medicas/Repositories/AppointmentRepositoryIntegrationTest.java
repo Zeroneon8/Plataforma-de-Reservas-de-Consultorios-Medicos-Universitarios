@@ -1,7 +1,6 @@
 package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.from;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -49,6 +48,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     private Doctor doctor;
     private Office office;
     private AppointmentType appointmentType;
+    private Specialty specialty;
     
     // Fecha y hora base para todos los test
     private LocalDateTime baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
@@ -56,7 +56,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     // BeforeEach asegura que en cada test partimos de un estado limpio y consistente, evitando que los tests se afecten entre sí
     @BeforeEach
     void setUp() {
-        var specialty = specialtyRepository.save(
+        specialty = specialtyRepository.save(
             Specialty.builder()
                 .name("Medicina General")
                 .build()
@@ -163,7 +163,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Appointment: No devuelve citas cuando el paciente coincide pero el estado no")
+    @DisplayName("Appointment: No encuentra citas cuando el paciente coincide pero el estado no")
     void shouldReturnEmptyWhenStatusDoesNotMatchForFindByPatientIdAndStatus() {
         // Given
         appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
@@ -178,7 +178,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Appointment: No devuelve citas cuando el estado coincide pero el paciente no")
+    @DisplayName("Appointment: No encuentra citas cuando el estado coincide pero el paciente no")
     void shouldReturnEmptyWhenPatientDoesNotMatchForFindByPatientIdAndStatus() {
         // Given
         var patient2 = patientRepository.save(
@@ -249,7 +249,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Appointment: No devuelve citas cuando el rango de fechas no coincide")
+    @DisplayName("Appointment: No encuentra citas cuando el rango de fechas no coincide")
     void shouldReturnEmptyWhenNoAppointmentsInRangeForFindByStartAtBetween() {
         // Given
         var from = baseDateTime.minusDays(5);
@@ -433,68 +433,124 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Appointment: Encuentra citas de un doctor por el rango de fechas indicado (sin incluir el límite superior)")
-    void shouldFindByDoctorBetweenExcludeTo() {
+    @DisplayName("Appointment: Encuentra citas de un doctor por el rango de fechas indicado (excluyendo el límite superior)")
+    void shouldFindByDoctorIdBetweenExcludeTo() {
         // Given
         var from = baseDateTime.minusDays(1);
         var to = baseDateTime.plusDays(1);
 
+        var doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr.Strange")
+                .documentNumber("666666")
+                .licenseNumber("LIC-002")
+                .email("drstrange@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
+                .build()
+        );
+
         var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(1), AppointmentStatus.CONFIRMED));
-        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CONFIRMED));
 
         // Citas fuera del rango - no deben aparecer
         appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(5), AppointmentStatus.CONFIRMED));
         appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CONFIRMED));
         
-        // When
-        var found = appointmentRepository.findByDoctorBetweenExcludeTo(doctor.getId(), from, to);
-
-        // Then
-        assertThat(found).hasSize(2);
-        assertThat(found).extracting(Appointment::getId)
-            .containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
-        assertThat(found).extracting(Appointment::getStartAt)
-            .allMatch(start -> !start.isBefore(from) && !start.isAfter(to));
-    }
-
-    /*
-    @Test
-    @DisplayName("Debe encontrar citas de un doctor en un rango de fechas")
-    void shouldFindAppointmentsByDoctorBetween() {
-        // Given
-        var from = baseDateTime.minusDays(1);
-        var to = baseDateTime.plusDays(1);
-
-        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
-        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CONFIRMED));
-
-        // Fuera del rango - no debe aparecer
-        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CONFIRMED));
-
-        // CANCELLED dentro del rango - no debe aparecer
-        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(2), AppointmentStatus.CANCELLED));
-
-        // When
-        var found = appointmentRepository.findAppointmentsByDoctorBetween(
-            doctor.getId(), from, to
+        // Cita de otro doctor - no debe aparecer
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient)
+                .doctor(doctor2)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(2))
+                .endAt(baseDateTime.plusHours(2).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
         );
 
+        // When
+        var found = appointmentRepository.findByDoctorIdAndStartAtBetweenExcludeTo(doctor.getId(), from, to);
+
         // Then
         assertThat(found).hasSize(2);
         assertThat(found).extracting(Appointment::getId)
             .containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
-        assertThat(found).extracting(a -> a.getDoctor().getId())
-            .containsOnly(doctor.getId());
+        assertThat(found).extracting(Appointment::getDoctor)
+            .allMatch(d -> d.getId().equals(doctor.getId()));
         assertThat(found).extracting(Appointment::getStartAt)
             .allMatch(start -> !start.isBefore(from) && start.isBefore(to));
-
-        // Verificación inversa - CANCELLED no aparece
-        assertThat(found).extracting(Appointment::getStatus)
-            .doesNotContain(AppointmentStatus.CANCELLED);
-
-        // Verificación inversa - cita fuera del rango no aparece
-        assertThat(found).extracting(Appointment::getStartAt)
-            .allMatch(start -> !start.isAfter(to));
     }
-    */
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas de un doctor por el rango de fechas indicado incluyendo el límite inferior")
+    void shouldIncludeFromForFindByDoctorIdBetweenExcludeTo() {
+        // Given
+        var from = baseDateTime;
+        var to = baseDateTime.plusHours(1);
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(from, AppointmentStatus.CONFIRMED));
+        
+        // When
+        var found = appointmentRepository.findByDoctorIdAndStartAtBetweenExcludeTo(doctor.getId(), from, to);
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Appointment::getId)
+            .containsExactly(appointment1.getId());
+        assertThat(found).extracting(Appointment::getStartAt)
+            .allMatch(start -> !start.isBefore(from) && start.isBefore(to));
+    }
+
+    @Test
+    @DisplayName("Appointment: No encuentra citas de un doctor por el rango de fechas indicado cuando la cita existente empieza exactamente al límite superior")
+    void shouldReturnEmptyWhenStartAtIsToForFindByDoctorIdBetweenExcludeTo() {
+        // Given
+        var from = baseDateTime;
+        var to = baseDateTime.plusHours(1);
+
+        appointmentRepository.save(buildDefaultAppointment(to, AppointmentStatus.CONFIRMED));
+        
+        // When
+        var found = appointmentRepository.findByDoctorIdAndStartAtBetweenExcludeTo(doctor.getId(), from, to);
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Appointment: No encuentra citas de un doctor por el rango de fechas indicado cuando la cita existente tiene estado cancelado")
+    void shouldReturnEmptyWhenStatusIsCancelledForFindByDoctorIdBetweenExcludeTo() {
+        // Given
+        var from = baseDateTime;
+        var to = baseDateTime.plusHours(1);
+
+        appointmentRepository.save(buildDefaultAppointment(from, AppointmentStatus.CANCELLED));
+        
+        // When
+        var found = appointmentRepository.findByDoctorIdAndStartAtBetweenExcludeTo(doctor.getId(), from, to);
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Appointment: No encuentra citas de un doctor cuando el rango de fechas no coincide")
+    void shouldReturnEmptyWhenNoAppointmentsInRangeForFindByDoctorIdBetweenExcludeTo() {
+        // Given
+        var from = baseDateTime.minusDays(5);
+        var to = baseDateTime.minusDays(4);
+
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+
+        // When
+        var found = appointmentRepository.findByDoctorIdAndStartAtBetweenExcludeTo(doctor.getId(), from, to);
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
 }

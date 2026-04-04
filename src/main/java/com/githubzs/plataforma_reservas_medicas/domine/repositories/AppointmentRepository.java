@@ -75,7 +75,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      AND a.startAt >= :from
      AND a.startAt < :to
     """)
-    List<Appointment> findByDoctorBetweenExcludeTo(
+    List<Appointment> findByDoctorIdAndStartAtBetweenExcludeTo(
         @Param("doctorId") UUID doctorId,
         @Param("from") LocalDateTime from,
         @Param("to") LocalDateTime to
