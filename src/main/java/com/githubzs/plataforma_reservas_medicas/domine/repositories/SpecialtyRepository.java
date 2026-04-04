@@ -1,6 +1,7 @@
 package com.githubzs.plataforma_reservas_medicas.domine.repositories;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,8 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 public interface SpecialtyRepository extends JpaRepository<Specialty, UUID> {
 
     boolean existsByName(String name);
+
+    Optional<Specialty> findByName(String name);
 
     // Contar citas canceladas y no asistidas agrupadas por especialidad
     @Query("""

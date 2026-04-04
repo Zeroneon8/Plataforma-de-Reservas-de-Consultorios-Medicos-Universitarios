@@ -35,7 +35,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
      LEFT JOIN d.appointments a
      ON a.status = com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.COMPLETED
      GROUP BY d.id, d.fullName
-     ORDER BY COUNT(a) DESC
+     ORDER BY COUNT(a) DESC, d.fullName ASC
     """)
     List<DoctorRankingStatsDto> rankDoctorsByCompletedAppointments();
 

@@ -75,7 +75,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
 
         doctor = doctorRepository.save(
             Doctor.builder()
-                .fullName("Dr.House")
+                .fullName("Dr. House")
                 .documentNumber("111111")
                 .licenseNumber("LIC-001")
                 .email("drhouse@doctor.com")
@@ -143,6 +143,18 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .startAt(baseDateTime.plusHours(3))
                 .endAt(baseDateTime.plusHours(3).plusMinutes(appointmentType.getDurationMinutes()))
                 .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
+        );
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient2)
+                .doctor(doctor)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(4))
+                .endAt(baseDateTime.plusHours(4).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CANCELLED)
                 .createdAt(Instant.now())
                 .build()
         );
