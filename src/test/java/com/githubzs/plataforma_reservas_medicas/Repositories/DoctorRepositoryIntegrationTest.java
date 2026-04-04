@@ -101,6 +101,57 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
+    @DisplayName("Doctor: Encuentra doctores por especialidad")
+    void shouldFindBySpecialtyId() {
+        // Given
+        var specialty2 = specialtyRepository.save(
+            Specialty.builder()
+                .name("Psicología")
+                .build()
+        );
+
+        var doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dra. Grey")
+                .documentNumber("222222")
+                .licenseNumber("LIC-002")
+                .email("drgrey@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty2)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        // When
+        var found = doctorRepository.findBySpecialty_Id(specialty2.getId(), Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Doctor::getId)
+            .containsExactly(doctor2.getId());
+        assertThat(found).extracting(Doctor::getSpecialty)
+            .extracting(Specialty::getId)
+            .containsExactly(specialty2.getId());
+    }
+
+    @Test
+    @DisplayName("Doctor: No encuentra doctores cuando la especialidad no coincide")
+    void shouldReturnEmptyWhenSpecialtyDoesNotMatchForFindBySpecialtyId() {
+        // Given
+        var specialty2 = specialtyRepository.save(
+            Specialty.builder()
+                .name("Psicología")
+                .build()
+        );
+
+        // When
+        var found = doctorRepository.findBySpecialty_Id(specialty2.getId(), Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
     @DisplayName("Doctor: Encuentra doctores por especialidad y estado")
     void shouldFindByStatusAndSpecialtyId() {
         // Given
