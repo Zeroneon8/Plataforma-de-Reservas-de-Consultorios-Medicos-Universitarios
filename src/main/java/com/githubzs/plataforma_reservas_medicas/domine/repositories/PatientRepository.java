@@ -32,6 +32,7 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
         @Param("to") LocalDateTime to
     );
     
+    // Listar pacientes ordenados por cantidad de inasistencias (NO_SHOW) en un rango de fechas
     @Query("""
      SELECT new com.githubzs.plataforma_reservas_medicas.domine.dto.PatientNoShowStatsDto(
       a.patient.id,
@@ -42,7 +43,7 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
      WHERE a.status = com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.NO_SHOW
      AND a.startAt BETWEEN :from AND :to
      GROUP BY a.patient.id, a.patient.fullName
-     ORDER BY COUNT(a) DESC
+     ORDER BY COUNT(a) DESC, a.patient.fullName ASC
     """)
     List<PatientNoShowStatsDto> countPatientsNoShow(
         @Param("from") LocalDateTime from,

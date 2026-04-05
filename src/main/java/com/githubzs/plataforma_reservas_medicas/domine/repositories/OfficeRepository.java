@@ -20,19 +20,20 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
 
     Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
 
-    // Calcular ocupación de las oficinas en un rango de fechas (muestra tanto la cantidad de veces ocupada como la cantidad de minutos ocupada)
+    // Calcular ocupación de las oficinas en un rango de fechas (muestra tanto la cantidad de citas como la duración total de las mismas, y la cantidad de no-shows)
     @Query("""
      SELECT new com.githubzs.plataforma_reservas_medicas.domine.dto.OfficeOccupancyDto(
       o.id,
       COUNT(a),
-      COALESCE(SUM(a.appointmentType.durationMinutes), 0),
+      COALESCE(SUM(at.durationMinutes), 0),
       COALESCE(SUM(CASE WHEN a.status = com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.NO_SHOW THEN 1 ELSE 0 END), 0)
      )
      FROM Office o
      LEFT JOIN o.appointments a
-     ON a.startAt >= :from
+     ON a.endAt > :from
      AND a.startAt < :to
      AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
+     LEFT JOIN a.appointmentType at
      GROUP BY o.id
      ORDER BY COUNT(a) DESC
     """)

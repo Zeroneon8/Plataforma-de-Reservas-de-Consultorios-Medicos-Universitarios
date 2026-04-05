@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
+class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
@@ -75,7 +76,7 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
 
         doctor = doctorRepository.save(
             Doctor.builder()
-                .fullName("Dr.House")
+                .fullName("Dr. House")
                 .documentNumber("111111")
                 .licenseNumber("LIC-001")
                 .email("drhouse@doctor.com")
@@ -146,6 +147,18 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .createdAt(Instant.now())
                 .build()
         );
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient2)
+                .doctor(doctor)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(4))
+                .endAt(baseDateTime.plusHours(4).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CANCELLED)
+                .createdAt(Instant.now())
+                .build()
+        );
 
         // When
         var found = appointmentRepository.findByPatient_IdAndStatus(
@@ -181,21 +194,12 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     @DisplayName("Appointment: No encuentra citas cuando el estado coincide pero el paciente no")
     void shouldReturnEmptyWhenPatientDoesNotMatchForFindByPatientIdAndStatus() {
         // Given
-        var patient2 = patientRepository.save(
-            Patient.builder()
-                .fullName("Jane Doe")
-                .documentNumber("987654")
-                .phoneNumber("3019283728")
-                .email("janedoe@gmail.com")
-                .createdAt(Instant.now())
-                .status(PatientStatus.ACTIVE)
-                .build()
-        );
+        var altId = new UUID(patient.getId().getMostSignificantBits(), patient.getId().getLeastSignificantBits() + 1);
         appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
         
         // When
         var found = appointmentRepository.findByPatient_IdAndStatus(
-            patient2.getId(), AppointmentStatus.CONFIRMED, Pageable.ofSize(10)
+            altId, AppointmentStatus.CONFIRMED, Pageable.ofSize(10)
         );
 
         // Then
@@ -269,12 +273,9 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     void shouldFindByIdAndStatus() {
         // Given
         var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
-        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
 
         // When
         var found = appointmentRepository.findByIdAndStatus(appointment1.getId(), AppointmentStatus.CONFIRMED);
-        var notFoundWrongStatus = appointmentRepository.findByIdAndStatus(appointment1.getId(), AppointmentStatus.CANCELLED);
-        var notFoundWrongId = appointmentRepository.findByIdAndStatus(appointment2.getId(), AppointmentStatus.CONFIRMED);
 
         // Then
         assertThat(found).isPresent();
@@ -282,11 +283,35 @@ public class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(found.get().getStatus()).isEqualTo(AppointmentStatus.CONFIRMED);
         assertThat(found.get().getPatient().getId()).isEqualTo(patient.getId());
         assertThat(found.get().getDoctor().getId()).isEqualTo(doctor.getId());
-
-        // Verificación inversa
-        assertThat(notFoundWrongStatus).isNotPresent();
-        assertThat(notFoundWrongId).isNotPresent();
     }
+
+    @Test
+    @DisplayName("Appointment: No encuentra una cita cuando el ID coincide pero el estado no")
+    void shouldReturnEmptyWhenStatusDoesNotMatchForFindByIdAndStatus() {
+        // Given
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
+
+        // When
+        var found = appointmentRepository.findByIdAndStatus(appointment1.getId(), AppointmentStatus.CONFIRMED);
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Appointment: No encuentra una cita cuando el estado coincide pero el ID no")
+    void shouldReturnEmptyWhenIdDoesNotMatchForFindByIdAndStatus() {
+        // Given
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var altId = new UUID(appointment1.getId().getMostSignificantBits(), appointment1.getId().getLeastSignificantBits() + 1);
+
+        // When
+        var found = appointmentRepository.findByIdAndStatus(altId, AppointmentStatus.CONFIRMED);
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+        
 
     @Test
     @DisplayName("Appointment: Detecta solapamiento de citas para un paciente")

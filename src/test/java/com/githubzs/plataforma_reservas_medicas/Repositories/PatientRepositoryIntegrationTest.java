@@ -2,7 +2,6 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +28,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
+class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private PatientRepository patientRepository;
@@ -44,6 +43,7 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
     @Autowired
     private SpecialtyRepository specialtyRepository;
 
+    // Datos base utilizados en todos los tests
     private Doctor doctor;
     private Office office;
     private AppointmentType appointmentType;
@@ -86,18 +86,18 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         );
     }
 
-    private Patient buildPatient(String fullName, String documentNumber, String email) {
+    private Patient buildDefaultPatient(String fullName, String documentNumber, String email) {
         return Patient.builder()
             .fullName(fullName)
             .documentNumber(documentNumber)
-            .phoneNumber("324-123-4567")
+            .phoneNumber("3241234567")
             .email(email)
             .createdAt(Instant.now())
             .status(PatientStatus.ACTIVE)
             .build();
     }
 
-    private Appointment buildAppointment(Patient patient, LocalDateTime start, AppointmentStatus status) {
+    private Appointment buildDefaultAppointment(Patient patient, LocalDateTime start, AppointmentStatus status) {
         return Appointment.builder()
             .patient(patient)
             .doctor(doctor)
@@ -111,39 +111,53 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Debe verificar si existe un paciente por ID y status")
-    void shouldExistsByIdAndStatus() {
+    @DisplayName("Patient: Detecta si existe un paciente especifico con un estado dado")
+    void shouldExistByIdAndStatus() {
         // Given
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // When
-        var existsWithCorrectIdAndStatus = patientRepository.existsByIdAndStatus(
-            patient.getId(), PatientStatus.ACTIVE
-        );
-        var existsWithWrongId = patientRepository.existsByIdAndStatus(
-            UUID.randomUUID(), PatientStatus.ACTIVE
-        );
-        var existsWithWrongStatus = patientRepository.existsByIdAndStatus(
-            patient.getId(), PatientStatus.INACTIVE
-        );
+        var exist = patientRepository.existsByIdAndStatus(patient.getId(), PatientStatus.ACTIVE);
 
         // Then
-        assertThat(existsWithCorrectIdAndStatus).isTrue();
-
-        // Verificación inversa
-        assertThat(existsWithWrongId).isFalse();
-        assertThat(existsWithWrongStatus).isFalse();
+        assertThat(exist).isTrue();
     }
 
     @Test
-    @DisplayName("Debe encontrar un paciente por número de documento")
+    @DisplayName("Patient: No detecta la existencia de un paciente si el id coincide pero el estado no")
+    void shouldReturnFalseWhenStatusDoesNotMatchForExistByIdAndStatus() {
+        // Given
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exist = patientRepository.existsByIdAndStatus(patient.getId(), PatientStatus.INACTIVE);
+
+        // Then
+        assertThat(exist).isFalse();
+    }
+
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente si el estado coincide pero el id no")
+    void shouldReturnFalseWhenIdDoesNotMatchForExistByIdAndStatus() {
+        // Given
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var altId = new UUID(patient1.getId().getMostSignificantBits(), patient1.getId().getLeastSignificantBits() + 1);
+
+        // When
+        var exist = patientRepository.existsByIdAndStatus(altId, PatientStatus.ACTIVE);
+
+        // Then
+        assertThat(exist).isFalse();
+    }
+
+    @Test
+    @DisplayName("Patient: Encuentra un paciente por número de documento")
     void shouldFindByDocumentNumber() {
         // Given
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // When
         var found = patientRepository.findByDocumentNumber("123456");
-        var notFound = patientRepository.findByDocumentNumber("999999");
 
         // Then
         assertThat(found).isPresent();
@@ -152,110 +166,200 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(found.get().getDocumentNumber()).isEqualTo("123456");
         assertThat(found.get().getEmail()).isEqualTo("johndoe@gmail.com");
         assertThat(found.get().getStatus()).isEqualTo(PatientStatus.ACTIVE);
-
-        // Verificación inversa
-        assertThat(notFound).isNotPresent();
     }
 
     @Test
-    @DisplayName("Debe contar inasistencias de un paciente en un rango de fechas")
+    @DisplayName("Patient: No encuentra un paciente por número de documento no presente en la base de datos")
+    void shouldReturnEmptyWhenDocumentNumberDoesNotMatchForFindByDocumentNumber() {
+        // When
+        var found = patientRepository.findByDocumentNumber("999999");
+
+        // Then
+        assertThat(found).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Patient: Cuenta inasistencias (NO_SHOW) de un paciente en un rango de fechas")
     void shouldCountNoShowByPatient() {
         // Given
-        var now = LocalDateTime.now();
-        var from = now.minusDays(1);
-        var to = now.plusDays(1);
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
 
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
-        // 2 NO_SHOW dentro del rango
-        appointmentRepository.save(buildAppointment(patient, now, AppointmentStatus.NO_SHOW));
-        appointmentRepository.save(buildAppointment(patient, now.plusHours(1), AppointmentStatus.NO_SHOW));
-
-        // CONFIRMED dentro del rango - no debe contar
-        appointmentRepository.save(buildAppointment(patient, now.plusHours(2), AppointmentStatus.CONFIRMED));
-
-        // NO_SHOW fuera del rango - no debe contar
-        appointmentRepository.save(buildAppointment(patient, now.plusDays(5), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.plusHours(1), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.plusHours(2), AppointmentStatus.CONFIRMED)); // no debe contar porque no es NO_SHOW
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.plusDays(5), AppointmentStatus.NO_SHOW)); // no debe contar porque está fuera del rango
 
         // When
         var count = patientRepository.countNoShowByPatient(patient.getId(), from, to);
-        var countOutOfRange = patientRepository.countNoShowByPatient(
-            patient.getId(), now.plusDays(2), now.plusDays(10)
-        );
-        var countDifferentPatient = patientRepository.countNoShowByPatient(
-            UUID.randomUUID(), from, to
-        );
 
         // Then
         assertThat(count).isEqualTo(2);
-
-        // Verificación inversa - CONFIRMED no se cuenta
-        // Verificación inversa - NO_SHOW fuera del rango no se cuenta
-        assertThat(countOutOfRange).isEqualTo(1); // solo el plusDays(5)
-        
-        // Verificación inversa - paciente diferente no tiene inasistencias
-        assertThat(countDifferentPatient).isEqualTo(0);
     }
 
     @Test
-    @DisplayName("Debe retornar ranking de pacientes con más inasistencias en un rango de fechas")
+    @DisplayName("Patient: Incluye citas NO_SHOW en los extremos del rango de fechas al contar inasistencias")
+    void shouldIncludeNoShowFromAndToForCountNoShowByPatient() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime;
+        var to = baseDateTime.plusHours(2);
+
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime, AppointmentStatus.NO_SHOW)); 
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.plusHours(2), AppointmentStatus.NO_SHOW)); 
+        
+        // When
+        var count = patientRepository.countNoShowByPatient(patient.getId(), from, to);
+
+        // Then
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Patient: No cuenta inasistencias (NO_SHOW) de un paciente fuera del rango de fechas")
+    void shouldReturnZeroWhenNoShowIsOutsideDateRange() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
+
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.minusDays(2), AppointmentStatus.NO_SHOW)); 
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime.plusDays(2), AppointmentStatus.NO_SHOW)); 
+
+        // When
+        var count = patientRepository.countNoShowByPatient(patient.getId(), from, to);
+
+        // Then
+        assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("Patient: No cuenta inasistencias (NO_SHOW) dentro del rango de fechas si el id de paciente no coincide")
+    void shouldReturnZeroWhenPatientIdDoesNotMatchForCountNoShowByPatient() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusHours(2);
+        var to = baseDateTime.plusHours(2);
+
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        var altId = new UUID(patient.getId().getMostSignificantBits(), patient.getId().getLeastSignificantBits() + 1);
+
+        appointmentRepository.save(buildDefaultAppointment(patient, baseDateTime, AppointmentStatus.NO_SHOW)); 
+        
+        // When
+        var count = patientRepository.countNoShowByPatient(altId, from, to);
+
+        // Then
+        assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("Patient: Lista pacientes ordenados por cantidad de inasistencias (NO_SHOW) en un rango de fechas")
     void shouldCountPatientsNoShow() {
         // Given
-        var now = LocalDateTime.now();
-        var from = now.minusDays(1);
-        var to = now.plusDays(1);
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
 
-        // Patient1 - 2 NO_SHOW → debe quedar primero
-        var patient1 = patientRepository.save(buildPatient("John Doe", "111111", "johndoe@gmail.com"));
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "111111", "johndoe@gmail.com"));
+        var patient2 = patientRepository.save(buildDefaultPatient("Jane Smith", "222222", "janesmith@gmail.com"));
+        var patient3 = patientRepository.save(buildDefaultPatient("Bob Martin", "333333", "bobmartin@gmail.com"));
 
-        // Patient2 - 1 NO_SHOW → debe quedar segundo
-        var patient2 = patientRepository.save(buildPatient("Jane Smith", "222222", "janesmith@gmail.com"));
+        // Paciente 1 - 2 citas NO_SHOW
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime.plusHours(1), AppointmentStatus.NO_SHOW));
 
-        // Patient3 - solo CONFIRMED → no debe aparecer en el resultado
-        var patient3 = patientRepository.save(buildPatient("Bob Martin", "333333", "bobmartin@gmail.com"));
+        // Paciente 2 - 1 cita NO_SHOW y 1 CONFIRMED (solo NO_SHOW debe contar)
+        appointmentRepository.save(buildDefaultAppointment(patient2, baseDateTime, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient2, baseDateTime.plusHours(1), AppointmentStatus.CONFIRMED));
 
-        // 2 NO_SHOW para patient1
-        appointmentRepository.save(buildAppointment(patient1, now, AppointmentStatus.NO_SHOW));
-        appointmentRepository.save(buildAppointment(patient1, now.plusHours(1), AppointmentStatus.NO_SHOW));
-
-        // 1 NO_SHOW para patient2
-        appointmentRepository.save(buildAppointment(patient2, now, AppointmentStatus.NO_SHOW));
-
-        // CONFIRMED para patient1 - no debe contar
-        appointmentRepository.save(buildAppointment(patient1, now.plusHours(2), AppointmentStatus.CONFIRMED));
-
-        // NO_SHOW fuera del rango para patient2 - no debe contar
-        appointmentRepository.save(buildAppointment(patient2, now.plusDays(5), AppointmentStatus.NO_SHOW));
-
-        // Solo CONFIRMED para patient3 - no debe aparecer
-        appointmentRepository.save(buildAppointment(patient3, now, AppointmentStatus.CONFIRMED));
+        // Paciente 3 - sin citas NO_SHOW, no debe aparecer en el resultado
+        appointmentRepository.save(buildDefaultAppointment(patient3, baseDateTime, AppointmentStatus.CONFIRMED));
 
         // When
         var result = patientRepository.countPatientsNoShow(from, to);
 
         // Then
         assertThat(result).hasSize(2);
-
-        // Verifica orden descendente
-        var stat1 = result.get(0);
-        assertThat(stat1.getPatientId()).isEqualTo(patient1.getId());
-        assertThat(stat1.getPatientName()).isEqualTo("John Doe");
-        assertThat(stat1.getNoShowCount()).isEqualTo(2);
-
-        var stat2 = result.get(1);
-        assertThat(stat2.getPatientId()).isEqualTo(patient2.getId());
-        assertThat(stat2.getPatientName()).isEqualTo("Jane Smith");
-        assertThat(stat2.getNoShowCount()).isEqualTo(1);
-
-        // Verificación inversa - patient3 no aparece (solo tiene CONFIRMED)
         assertThat(result).extracting(PatientNoShowStatsDto::getPatientId)
-            .doesNotContain(patient3.getId());
-
-        // Verificación inversa - orden descendente correcto
+            .containsExactly(patient1.getId(), patient2.getId());
+        assertThat(result).extracting(PatientNoShowStatsDto::getPatientName)
+            .containsExactly("John Doe", "Jane Smith");
         assertThat(result).extracting(PatientNoShowStatsDto::getNoShowCount)
-            .isSortedAccordingTo(Comparator.reverseOrder());
-
-        // Verificación inversa - NO_SHOW fuera del rango no afectó el conteo de patient2
-        assertThat(stat2.getNoShowCount()).isEqualTo(1);
+            .containsExactly(2L, 1L);
     }
+
+    @Test
+    @DisplayName("Patient: Lista pacientes con el mismo número de inasistencias (NO_SHOW) en un rango de fechas orden alfabético del nombre")
+    void shouldOrderPatientsWithSameNoShowCountByName() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
+
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "111111", "johndoe@gmail.com"));
+        var patient2 = patientRepository.save(buildDefaultPatient("Aston Martin", "222222", "vulcan@gmail.com"));
+
+        // Ambos pacientes tienen 1 cita NO_SHOW
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient2, baseDateTime, AppointmentStatus.NO_SHOW));
+
+        // When
+        var result = patientRepository.countPatientsNoShow(from, to);
+
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(PatientNoShowStatsDto::getPatientId)
+            .containsExactly(patient2.getId(), patient1.getId());
+        assertThat(result).extracting(PatientNoShowStatsDto::getPatientName)
+            .containsExactly("Aston Martin", "John Doe");
+        assertThat(result).extracting(PatientNoShowStatsDto::getNoShowCount)
+            .containsOnly(1L);
+    }
+
+    @Test
+    @DisplayName("Patient: No cuenta citas con estado distinto a NO_SHOW al listar pacientes por cantidad de inasistencias")
+    void shouldReturnEmptyWhenNoNoShowAppointmentsForCountPatientsNoShow() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
+
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "111111", "johndoe@gmail.com"));
+    
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime, AppointmentStatus.COMPLETED));
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime.plusHours(2), AppointmentStatus.SCHEDULED));
+        appointmentRepository.save(buildDefaultAppointment(patient1, baseDateTime.plusHours(3), AppointmentStatus.CONFIRMED));
+
+        // When
+        var result = patientRepository.countPatientsNoShow(from, to);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Patient: Listado de pacientes por cantidad de inasistencias (NO_SHOW) en un rango de fechas sin pacientes devuelve lista vacía")
+    void shouldReturnEmptyWhenNoPatientsForCountPatientsNoShow() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var from = baseDateTime.minusDays(1);
+        var to = baseDateTime.plusDays(1);
+
+        // When
+        var result = patientRepository.countPatientsNoShow(from, to);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
 }

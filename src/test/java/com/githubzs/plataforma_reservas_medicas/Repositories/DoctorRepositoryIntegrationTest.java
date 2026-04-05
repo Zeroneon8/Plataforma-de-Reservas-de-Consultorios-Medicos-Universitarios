@@ -2,10 +2,11 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,38 +30,33 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
+class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private DoctorRepository doctorRepository;
-
     @Autowired
     private SpecialtyRepository specialtyRepository;
-
     @Autowired
     private AppointmentRepository appointmentRepository;
-
     @Autowired
     private OfficeRepository officeRepository;
-    
     @Autowired
     private AppointmentTypeRepository appointmentTypeRepository;
-
     @Autowired
     private PatientRepository patientRepository;
     
-    
-    @Test
-    @DisplayName("Debe encontrar un doctor por número de documento")
-    void shouldFindByDocumentNumber() {
-        // Given
-        var specialty = specialtyRepository.save(
+    // Datos base reutilizados en todos los tests
+    private Doctor doctor;
+    private Specialty specialty;
+
+    @BeforeEach
+    void setUp() {
+        specialty = specialtyRepository.save(
             Specialty.builder()
                 .name("Medicina General")
                 .build()
         );
-
-        var doctor = doctorRepository.save(
+        doctor = doctorRepository.save(
             Doctor.builder()
                 .fullName("Dr. House")
                 .documentNumber("123456")
@@ -71,10 +67,16 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .createdAt(Instant.now())
                 .build()
         );
+    }
+
+
+    @Test
+    @DisplayName("Doctor: Encuentra un doctor por su número de documento")
+    void shouldFindByDocumentNumber() {
+        // Given - ya creado en el setUp()
 
         // When
         var found = doctorRepository.findByDocumentNumber("123456");
-        var notFound = doctorRepository.findByDocumentNumber("999999");
 
         // Then
         assertThat(found).isPresent();
@@ -84,36 +86,27 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(found.get().getEmail()).isEqualTo("drhouse@doctor.com");
         assertThat(found.get().getStatus()).isEqualTo(DoctorStatus.ACTIVE);
         assertThat(found.get().getSpecialty().getId()).isEqualTo(specialty.getId());
-
-        // Verificación inversa
-        assertThat(notFound).isNotPresent();
     }
 
     @Test
-    @DisplayName("Debe encontrar doctores por status y especialidad")
-    void shouldFindByStatusAndSpecialty_Id() {
-        // Given
-        var specialty1 = specialtyRepository.save(
-            Specialty.builder()
-                .name("Medicina General")
-                .build()
-        );
+    @DisplayName("Doctor: No encuentra un doctor con número de documento no presente en la base de datos")
+    void shouldNotFindByDocumentNumber() {
+        // Given - ya creado en el setUp()
 
+        // When
+        var found = doctorRepository.findByDocumentNumber("999999");
+
+        // Then
+        assertThat(found).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Doctor: Encuentra doctores por especialidad")
+    void shouldFindBySpecialtyId() {
+        // Given
         var specialty2 = specialtyRepository.save(
             Specialty.builder()
                 .name("Psicología")
-                .build()
-        );
-
-        var doctor1 = doctorRepository.save(
-            Doctor.builder()
-                .fullName("Dr. House")
-                .documentNumber("111111")
-                .licenseNumber("LIC-001")
-                .email("drhouse@doctor.com")
-                .status(DoctorStatus.ACTIVE)
-                .specialty(specialty1)
-                .createdAt(Instant.now())
                 .build()
         );
 
@@ -124,12 +117,58 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .licenseNumber("LIC-002")
                 .email("drgrey@doctor.com")
                 .status(DoctorStatus.ACTIVE)
-                .specialty(specialty1)
+                .specialty(specialty2)
                 .createdAt(Instant.now())
                 .build()
         );
 
-        // Doctor INACTIVE en specialty1 - no debe aparecer
+        // When
+        var found = doctorRepository.findBySpecialty_Id(specialty2.getId(), Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Doctor::getId)
+            .containsExactly(doctor2.getId());
+        assertThat(found).extracting(Doctor::getSpecialty)
+            .extracting(Specialty::getId)
+            .containsExactly(specialty2.getId());
+    }
+
+    @Test
+    @DisplayName("Doctor: No encuentra doctores cuando la especialidad no coincide")
+    void shouldReturnEmptyWhenSpecialtyDoesNotMatchForFindBySpecialtyId() {
+        // Given
+        var altId = new UUID(specialty.getId().getMostSignificantBits(), specialty.getId().getLeastSignificantBits() + 1);
+
+        // When
+        var found = doctorRepository.findBySpecialty_Id(altId, Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Doctor: Encuentra doctores por especialidad y estado")
+    void shouldFindByStatusAndSpecialtyId() {
+        // Given
+        var specialty2 = specialtyRepository.save(
+            Specialty.builder()
+                .name("Psicología")
+                .build()
+        );
+
+        doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dra. Grey")
+                .documentNumber("222222")
+                .licenseNumber("LIC-002")
+                .email("drgrey@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty2)
+                .createdAt(Instant.now())
+                .build()
+        );
+
         doctorRepository.save(
             Doctor.builder()
                 .fullName("Dr. Wilson")
@@ -137,19 +176,18 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .licenseNumber("LIC-003")
                 .email("drwilson@doctor.com")
                 .status(DoctorStatus.INACTIVE)
-                .specialty(specialty1)
+                .specialty(specialty)
                 .createdAt(Instant.now())
                 .build()
         );
 
-        // Doctor ACTIVE en specialty2 - no debe aparecer
         doctorRepository.save(
             Doctor.builder()
-                .fullName("Dr. Yang")
+                .fullName("Dra. Adams")
                 .documentNumber("444444")
                 .licenseNumber("LIC-004")
-                .email("dryang@doctor.com")
-                .status(DoctorStatus.ACTIVE)
+                .email("draadams@doctor.com")
+                .status(DoctorStatus.INACTIVE)
                 .specialty(specialty2)
                 .createdAt(Instant.now())
                 .build()
@@ -157,79 +195,122 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
 
         // When
         var found = doctorRepository.findByStatusAndSpecialty_Id(
-            DoctorStatus.ACTIVE, specialty1.getId(), Pageable.ofSize(10)
+            DoctorStatus.ACTIVE, specialty.getId(), Pageable.ofSize(10)
         );
 
         // Then
-        assertThat(found).hasSize(2);
+        assertThat(found).hasSize(1);
         assertThat(found).extracting(Doctor::getId)
-            .containsExactlyInAnyOrder(doctor1.getId(), doctor2.getId());
+            .containsExactly(doctor.getId());
         assertThat(found).extracting(Doctor::getStatus)
             .containsOnly(DoctorStatus.ACTIVE);
         assertThat(found).extracting(Doctor::getSpecialty)
             .extracting(Specialty::getId)
-            .containsOnly(specialty1.getId());
-
-        // Verificación inversa - INACTIVE no aparece
-        assertThat(found).extracting(Doctor::getStatus)
-            .doesNotContain(DoctorStatus.INACTIVE);
-
-        // Verificación inversa - specialty2 no aparece
-        assertThat(found).extracting(Doctor::getSpecialty)
-            .extracting(Specialty::getId)
-            .doesNotContain(specialty2.getId());
+            .containsOnly(specialty.getId());
     }
 
     @Test
-    @DisplayName("Debe verificar si existe un doctor por ID y status")
-    void shouldExistsByIdAndStatus() {
+    @DisplayName("Doctor: No encuentra doctores cuando la especialidad coincide pero el estado no")
+    void shouldReturnEmptyWhenStatusDoesNotMatchForFindByStatusAndSpecialtyId() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var found = doctorRepository.findByStatusAndSpecialty_Id(
+            DoctorStatus.INACTIVE, specialty.getId(), Pageable.ofSize(10)
+        );
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Doctor: No encuentra doctores cuando el estado coincide pero la especialidad no")
+    void shouldReturnEmptyWhenSpecialtyDoesNotMatchForFindByStatusAndSpecialtyId() {
         // Given
-        var specialty = specialtyRepository.save(
+        var specialty2 = specialtyRepository.save(
             Specialty.builder()
-                .name("Medicina General")
+                .name("Psicología")
                 .build()
         );
 
-        var doctor = doctorRepository.save(
+        // When
+        var found = doctorRepository.findByStatusAndSpecialty_Id(
+            DoctorStatus.ACTIVE, specialty2.getId(), Pageable.ofSize(10)
+        );
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Doctor: Detecta si existe un doctor por estado")
+    void shouldExistsByIdAndStatus() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByIdAndStatus(
+            doctor.getId(), DoctorStatus.ACTIVE
+        );
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Doctor: No detecta la existencia de un doctor si el id coincide pero el estado no")
+    void shouldReturnFalseWhenStatusDoesNotMatchForExistsByIdAndStatus() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByIdAndStatus(
+            doctor.getId(), DoctorStatus.INACTIVE
+        );
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("Doctor: No detecta la existencia de un doctor si el estado coincide pero el ID no")
+    void shouldReturnFalseWhenIdDoesNotMatchForExistsByIdAndStatus() {
+        // Given
+        var altId = new UUID(doctor.getId().getMostSignificantBits(), doctor.getId().getLeastSignificantBits() + 1);
+
+        // When
+        var exists = doctorRepository.existsByIdAndStatus(
+            altId, DoctorStatus.ACTIVE
+        );
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("Doctor: rankea doctores por cantidad de citas completadas en orden descendente")
+    void shouldRankDoctorsByCompletedAppointments() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+
+        var doctor2 = doctorRepository.save(
             Doctor.builder()
-                .fullName("Dr. House")
-                .documentNumber("123456")
-                .licenseNumber("LIC-001")
-                .email("drhouse@doctor.com")
+                .fullName("Dra. Grey")
+                .documentNumber("222222")
+                .licenseNumber("LIC-002")
+                .email("drgrey@doctor.com")
                 .status(DoctorStatus.ACTIVE)
                 .specialty(specialty)
                 .createdAt(Instant.now())
                 .build()
         );
-
-        // When
-        var existsWithCorrectIdAndStatus = doctorRepository.existsByIdAndStatus(
-            doctor.getId(), DoctorStatus.ACTIVE
-        );
-        var existsWithWrongId = doctorRepository.existsByIdAndStatus(
-            UUID.randomUUID(), DoctorStatus.ACTIVE
-        );
-        var existsWithWrongStatus = doctorRepository.existsByIdAndStatus(
-            doctor.getId(), DoctorStatus.INACTIVE
-        );
-
-        // Then
-        assertThat(existsWithCorrectIdAndStatus).isTrue();
-
-        // Verificación inversa
-        assertThat(existsWithWrongId).isFalse();
-        assertThat(existsWithWrongStatus).isFalse();
-    }
-
-    @Test
-    @DisplayName("Debe rankear doctores por citas completadas en orden descendente")
-    void shouldRankDoctorsByCompletedAppointments() {
-        // Given
-        var now = LocalDateTime.now();
-
-        var specialty = specialtyRepository.save(
-            Specialty.builder()
-                .name("Medicina General")
+        var doctor3 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr. Wilson")
+                .documentNumber("333333")
+                .licenseNumber("LIC-003")
+                .email("drwilson@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
                 .build()
         );
 
@@ -237,7 +318,7 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
             Patient.builder()
                 .fullName("John Doe")
                 .documentNumber("123456")
-                .phoneNumber("324-123-4567")
+                .phoneNumber("3241234567")
                 .email("johndoe@gmail.com")
                 .createdAt(Instant.now())
                 .status(PatientStatus.ACTIVE)
@@ -261,76 +342,113 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
                 .build()
         );
 
-        // Doctor1 - tendrá 2 citas COMPLETED → debe quedar primero
-        var doctor1 = doctorRepository.save(
-            Doctor.builder()
-                .fullName("Dr. House")
-                .documentNumber("111111")
-                .licenseNumber("LIC-001")
-                .email("drhouse@doctor.com")
-                .status(DoctorStatus.ACTIVE)
-                .specialty(specialty)
-                .createdAt(Instant.now())
-                .build()
+        // Doctor 1 - tendrá 2 citas completadas, debe quedar primero
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime).endAt(baseDateTime.plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.COMPLETED)
+            .createdAt(Instant.now()).build()
+        );
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(1)).endAt(baseDateTime.plusDays(1).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.COMPLETED)
+            .createdAt(Instant.now()).build()
         );
 
-        // Doctor2 - tendrá 1 cita COMPLETED → debe quedar segundo
+        // Doctor 2 - tendrá 1 cita completada y 1 cancelada, deber quedar segundo con 1 (la cancelada no debe contar)
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor2).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(2)).endAt(baseDateTime.plusDays(2).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.CANCELLED)
+            .createdAt(Instant.now()).build()
+        );
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor2).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(3)).endAt(baseDateTime.plusDays(3).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.COMPLETED)
+            .createdAt(Instant.now()).build()
+        );
+
+        // Doctor 3 - sin citas completadas, debe quedar último con 0
+
+        // When
+        var result = doctorRepository.rankDoctorsByCompletedAppointments();
+
+        // Then
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorId)
+            .containsExactly(doctor.getId(), doctor2.getId(), doctor3.getId());
+        assertThat(result).extracting(DoctorRankingStatsDto::getCompletedAppointments)
+            .containsExactly(2L, 1L, 0L);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorName)
+            .containsExactly("Dr. House", "Dra. Grey", "Dr. Wilson");
+    }
+
+    @Test
+    @DisplayName("Doctor: rankea doctores con mismo número de citas completadas por orden alfabético del nombre")
+    void shouldRankDoctorsWithSameCompletedAppointmentsByName() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+
         var doctor2 = doctorRepository.save(
             Doctor.builder()
-                .fullName("Dra. Grey")
-                .documentNumber("222222")
+                .fullName("Dr. Adams") 
+                .documentNumber("122345")
                 .licenseNumber("LIC-002")
-                .email("drgrey@doctor.com")
+                .email("adamsdr@doctor.com")
                 .status(DoctorStatus.ACTIVE)
                 .specialty(specialty)
                 .createdAt(Instant.now())
                 .build()
         );
-
-        // Doctor3 - sin citas COMPLETED → debe quedar último con 0
-        var doctor3 = doctorRepository.save(
-            Doctor.builder()
-                .fullName("Dr. Wilson")
-                .documentNumber("333333")
-                .licenseNumber("LIC-003")
-                .email("drwilson@doctor.com")
-                .status(DoctorStatus.ACTIVE)
-                .specialty(specialty)
+        
+        var patient = patientRepository.save(
+            Patient.builder()
+                .fullName("John Doe")
+                .documentNumber("123456")
+                .phoneNumber("3241234567")
+                .email("johndoe@gmail.com")
                 .createdAt(Instant.now())
+                .status(PatientStatus.ACTIVE)
                 .build()
         );
 
-        // 2 citas COMPLETED para doctor1
-        appointmentRepository.save(Appointment.builder()
-            .patient(patient).doctor(doctor1).office(office)
-            .appointmentType(appointmentType)
-            .startAt(now).endAt(now.plusMinutes(30))
-            .status(AppointmentStatus.COMPLETED)
-            .createdAt(Instant.now()).build()
+        var office = officeRepository.save(
+            Office.builder()
+                .name("Consultorio 1")
+                .location("Edificio A")
+                .roomNumber(101)
+                .createdAt(Instant.now())
+                .status(OfficeStatus.AVAILABLE)
+                .build()
         );
+
+        var appointmentType = appointmentTypeRepository.save(
+            AppointmentType.builder()
+                .name("Consulta general")
+                .durationMinutes(30)
+                .build()
+        );
+
+        // Ambos doctores tienen 1 cita completada
         appointmentRepository.save(Appointment.builder()
-            .patient(patient).doctor(doctor1).office(office)
+            .patient(patient).doctor(doctor).office(office)
             .appointmentType(appointmentType)
-            .startAt(now.plusDays(1)).endAt(now.plusDays(1).plusMinutes(30))
+            .startAt(baseDateTime).endAt(baseDateTime.plusMinutes(appointmentType.getDurationMinutes()))
             .status(AppointmentStatus.COMPLETED)
             .createdAt(Instant.now()).build()
         );
 
-        // 1 cita COMPLETED para doctor2
         appointmentRepository.save(Appointment.builder()
             .patient(patient).doctor(doctor2).office(office)
             .appointmentType(appointmentType)
-            .startAt(now).endAt(now.plusMinutes(30))
+            .startAt(baseDateTime.plusDays(1)).endAt(baseDateTime.plusDays(1).plusMinutes(appointmentType.getDurationMinutes()))
             .status(AppointmentStatus.COMPLETED)
-            .createdAt(Instant.now()).build()
-        );
-
-        // Cita CANCELLED para doctor2 - no debe contar en el ranking
-        appointmentRepository.save(Appointment.builder()
-            .patient(patient).doctor(doctor2).office(office)
-            .appointmentType(appointmentType)
-            .startAt(now).endAt(now.plusMinutes(30))
-            .status(AppointmentStatus.CANCELLED)
             .createdAt(Instant.now()).build()
         );
 
@@ -338,29 +456,105 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
         var result = doctorRepository.rankDoctorsByCompletedAppointments();
 
         // Then
-        assertThat(result).hasSize(3);
-
-        // Verifica orden descendente
-        var ranking1 = result.get(0);
-        assertThat(ranking1.getDoctorId()).isEqualTo(doctor1.getId());
-        assertThat(ranking1.getDoctorName()).isEqualTo("Dr. House");
-        assertThat(ranking1.getCompletedAppointments()).isEqualTo(2);
-
-        var ranking2 = result.get(1);
-        assertThat(ranking2.getDoctorId()).isEqualTo(doctor2.getId());
-        assertThat(ranking2.getDoctorName()).isEqualTo("Dra. Grey");
-        assertThat(ranking2.getCompletedAppointments()).isEqualTo(1);
-
-        // Doctor3 aparece con 0 por el LEFT JOIN
-        var ranking3 = result.get(2);
-        assertThat(ranking3.getDoctorId()).isEqualTo(doctor3.getId());
-        assertThat(ranking3.getCompletedAppointments()).isEqualTo(0);
-
-        // Verificación inversa - orden descendente correcto
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorId)
+            .containsExactly(doctor2.getId(), doctor.getId());
         assertThat(result).extracting(DoctorRankingStatsDto::getCompletedAppointments)
-            .isSortedAccordingTo(Comparator.reverseOrder());
-
-        // Verificación inversa - cita CANCELLED no afectó el conteo de doctor2
-        assertThat(ranking2.getCompletedAppointments()).isEqualTo(1);
+            .containsOnly(1L);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorName)
+            .containsExactly("Dr. Adams", "Dr. House");
     }
+
+    @Test
+    @DisplayName("Doctor: no cuenta citas que no estén en estado COMPLETED para el ranking")
+    void shouldNotCountNonCompletedAppointmentsForRanking() {
+        // Given
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+
+        var patient = patientRepository.save(
+            Patient.builder()
+                .fullName("John Doe")
+                .documentNumber("123456")
+                .phoneNumber("3241234567")
+                .email("johndoe@gmail.com")
+                .createdAt(Instant.now())
+                .status(PatientStatus.ACTIVE)
+                .build()
+        );
+
+        var office = officeRepository.save(
+            Office.builder()
+                .name("Consultorio 1")
+                .location("Edificio A")
+                .roomNumber(101)
+                .createdAt(Instant.now())
+                .status(OfficeStatus.AVAILABLE)
+                .build()
+        );
+        
+        var appointmentType = appointmentTypeRepository.save(
+            AppointmentType.builder()
+                .name("Consulta general")
+                .durationMinutes(30)
+                .build()
+        );
+
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime).endAt(baseDateTime.plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.SCHEDULED) 
+            .createdAt(Instant.now()).build()
+        );
+
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(1)).endAt(baseDateTime.plusDays(1).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.CANCELLED) 
+            .createdAt(Instant.now()).build()
+        );
+
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(2)).endAt(baseDateTime.plusDays(2).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.NO_SHOW) 
+            .createdAt(Instant.now()).build()
+        );
+
+        appointmentRepository.save(Appointment.builder()
+            .patient(patient).doctor(doctor).office(office)
+            .appointmentType(appointmentType)
+            .startAt(baseDateTime.plusDays(3)).endAt(baseDateTime.plusDays(3).plusMinutes(appointmentType.getDurationMinutes()))
+            .status(AppointmentStatus.CONFIRMED) 
+            .createdAt(Instant.now()).build()
+        );
+
+        // When
+        var result = doctorRepository.rankDoctorsByCompletedAppointments();
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorId)
+            .containsExactly(doctor.getId());
+        assertThat(result).extracting(DoctorRankingStatsDto::getCompletedAppointments)
+            .containsExactly(0L);
+        assertThat(result).extracting(DoctorRankingStatsDto::getDoctorName)
+            .containsExactly("Dr. House");
+    }
+
+    @Test
+    @DisplayName("Doctor: ranking de doctores sin doctores registrados devuelve lista vacía")
+    void shouldReturnEmptyWhenNoDoctorsForRanking() {
+        // Given
+        doctorRepository.deleteAll();
+
+        // When
+        var result = doctorRepository.rankDoctorsByCompletedAppointments();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+    
 }
