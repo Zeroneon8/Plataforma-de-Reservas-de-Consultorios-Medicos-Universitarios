@@ -11,29 +11,30 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorRespons
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 
 @Mapper(componentModel = "spring", uses = { SpecialtyMapper.class, DoctorScheduleMapper.class, AppointmentMapper.class })
 public interface DoctorMapper {
 
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true) // el servicio asigna ACTIVE
-    @Mapping(target = "createdAt",    ignore = true) // el servicio lo asigna
-    @Mapping(target = "updatedAt",    ignore = true) // el servicio lo asigna
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // Se setea en el servicio
+    @Mapping(target = "createdAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
     @Mapping(target = "appointments", ignore = true)
-    @Mapping(target = "schedules",    ignore = true)
-    @Mapping(target = "specialty",    source = "specialty")
-    Doctor toEntity(DoctorCreateRequest request, Specialty specialty);
+    @Mapping(target = "schedules", ignore = true)
+    @Mapping(target = "specialty", ignore = true) // Se setea en el servicio
+    Doctor toEntity(DoctorCreateRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true)
-    @Mapping(target = "createdAt",    ignore = true)
-    @Mapping(target = "updatedAt",    ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "licenseNumber", ignore = true)
+    @Mapping(target = "documentNumber", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "appointments", ignore = true)
-    @Mapping(target = "schedules",    ignore = true)
-    @Mapping(target = "specialty",    ignore = true) // el servicio resuelve Specialty por specialtyId
-    void applyUpdate(DoctorUpdateRequest request, @MappingTarget Doctor doctor);
+    @Mapping(target = "schedules", ignore = true)
+    @Mapping(target = "specialty", ignore = true)
+    void patch(DoctorUpdateRequest changes, @MappingTarget Doctor target);
 
     @Mapping(target = "specialty", source = "specialty")
     DoctorSummaryResponse toSummaryResponse(Doctor doctor);
@@ -42,4 +43,5 @@ public interface DoctorMapper {
     @Mapping(target = "schedules",     source = "schedules")
     @Mapping(target = "appointments",  source = "appointments")
     DoctorResponse toResponse(Doctor doctor);
+    
 }
