@@ -35,7 +35,7 @@ public class OfficeDtos {
         @Size(max = 255)
         String description,     
         @Positive
-        Integer roomNumber      // Integer (no int) para permitir null
+        Integer roomNumber // Integer (no int) para permitir null
     ) implements Serializable {}
 
     public record OfficeResponse(

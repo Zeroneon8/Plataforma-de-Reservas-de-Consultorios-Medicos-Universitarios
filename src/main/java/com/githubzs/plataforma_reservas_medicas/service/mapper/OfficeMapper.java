@@ -15,20 +15,20 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
 @Mapper(componentModel = "spring", uses = { AppointmentMapper.class })
 public interface OfficeMapper {
 
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true) // el servicio asigna ACTIVE
-    @Mapping(target = "createdAt",    ignore = true) // el servicio lo asigna
-    @Mapping(target = "updatedAt",    ignore = true) // el servicio lo asigna
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // Se setea en el servicio
+    @Mapping(target = "createdAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
     @Mapping(target = "appointments", ignore = true)
     Office toEntity(OfficeCreateRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true)
-    @Mapping(target = "createdAt",    ignore = true)
-    @Mapping(target = "updatedAt",    ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "appointments", ignore = true)
-    void applyUpdate(OfficeUpdateRequest request, @MappingTarget Office office);
+    void patch(OfficeUpdateRequest request, @MappingTarget Office office);
 
     OfficeResponse toResponse(Office office);
 
