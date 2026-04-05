@@ -11,6 +11,7 @@ import com.githubzs.plataforma_reservas_medicas.Api.dto.SpecialtyDto.SpecialtySu
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class DoctorDto {
@@ -18,23 +19,24 @@ public class DoctorDto {
     public record DoctorCreateRequest(
         @NotBlank
         @Size(max = 100)
-        String fullname, 
+        String fullName, 
+        @NotBlank
         @Size(max = 320)
         String email,
         @NotBlank
         @Size(max = 50)  
-        String licenceNumber, 
+        String licenseNumber, 
         @NotBlank
         @Size(max = 50)
         String documentNumber,
-        @NotBlank  
+        @NotNull  
         UUID specialtyId
     ) implements Serializable {}
 
 
     public record DoctorResponse(
         UUID id, 
-        String fullname, 
+        String fullName, 
         String email,  
         SpecialtySummaryResponse specialty, 
         DoctorStatus status,  
@@ -44,7 +46,7 @@ public class DoctorDto {
 
     public record DoctorSummaryResponse(
         UUID id, 
-        String fullname, 
+        String fullName, 
         String email, 
         DoctorStatus status, 
         SpecialtySummaryResponse specialty
@@ -53,7 +55,7 @@ public class DoctorDto {
     // Por si se necesita una respuesta con más detalles, como las citas y horarios asociados al doctor
     public record DoctorDetailResponse(
         UUID id, 
-        String fullname, 
+        String fullName, 
         String email,  
         SpecialtySummaryResponse specialty, 
         DoctorStatus status,  

@@ -12,20 +12,21 @@ import com.githubzs.plataforma_reservas_medicas.Api.dto.PatientDto.PatientSummar
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class AppointmentDto {
     
     public record AppointmentCreateRequest(
-        @NotBlank
+        @NotNull
         UUID doctorId, 
-        @NotBlank
+        @NotNull
         UUID patientId,
-        @NotBlank
+        @NotNull
         UUID officeId,
-        @NotBlank
+        @NotNull
         UUID appointmentTypeId,
-        @NotBlank
+        @NotNull
         LocalDateTime startAt     
     ) implements Serializable {}
 

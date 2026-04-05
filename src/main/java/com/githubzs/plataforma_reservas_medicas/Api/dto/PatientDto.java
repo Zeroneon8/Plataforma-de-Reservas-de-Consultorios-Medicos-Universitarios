@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentResponse;
+import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 
 import jakarta.validation.constraints.NotBlank;
@@ -66,6 +66,6 @@ public class PatientDto {
         PatientStatus status, 
         Instant createdAt, 
         Instant updatedAt, 
-        Set<AppointmentResponse> appointments
+        Set<AppointmentSummaryResponse> appointments
     ) implements Serializable {}
 }
