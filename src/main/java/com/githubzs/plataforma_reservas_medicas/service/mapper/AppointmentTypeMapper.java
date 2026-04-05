@@ -12,7 +12,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 @Mapper(componentModel = "spring")
 public interface AppointmentTypeMapper {
 
-    @Mapping(target = "id",           ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "appointments", ignore = true)
     AppointmentType toEntity(AppointmentTypeCreateRequest request);
 
@@ -20,5 +20,4 @@ public interface AppointmentTypeMapper {
 
     AppointmentSummaryResponse toSummaryResponse(Appointment appointment);
     
-    AppointmentTypeResponse toDetailResponse(AppointmentType appointmentType);
 }
