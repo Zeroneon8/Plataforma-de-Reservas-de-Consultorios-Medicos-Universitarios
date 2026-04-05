@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 /**
  * Clase base para tests de repositorios.
  * - @DataJpaTest: levanta solo la capa JPA (rápido)
- * - @Testcontainers + @ServiceConnection: autoconfigura el DataSource con Postgres 16 en contenedor
+ * - @Testcontainers + @ServiceConnection: autoconfigura el DataSource con Postgres 17 en contenedor
  */
 @DataJpaTest
 @Testcontainers

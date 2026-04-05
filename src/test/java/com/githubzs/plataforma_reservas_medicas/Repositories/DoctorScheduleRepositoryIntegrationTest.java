@@ -20,7 +20,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryIT {
+class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private DoctorScheduleRepository doctorScheduleRepository;
@@ -56,7 +56,7 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
 
     @Test
     @DisplayName("Doctor Schedule: Encuentra los horarios de un doctor por el día de la semana")
-    public void shouldFindByDoctorIdAndDayOfWeek() {
+    void shouldFindByDoctorIdAndDayOfWeek() {
         // Given
         var doctorSchedule = doctorScheduleRepository.save(
             DoctorSchedule.builder()
@@ -95,7 +95,7 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
 
     @Test
     @DisplayName("Doctor Schedule: No encuentra horarios para un doctor en un día sin horarios")
-    public void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDay() {
+    void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDay() {
         // Given
         doctorScheduleRepository.save(
             DoctorSchedule.builder()
@@ -115,7 +115,7 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
 
     @Test
     @DisplayName("Doctor Schedule: No encuentra horarios cuando el día de la semana coincide pero el doctor es diferente")
-    public void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDayWithDifferentDoctor() {
+    void shouldReturnEmptyWhenNoSchedulesFoundForDoctorOnDayWithDifferentDoctor() {
         // Given
         doctorScheduleRepository.save(
             DoctorSchedule.builder()

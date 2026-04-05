@@ -30,7 +30,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 
-public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
+class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
 
     @Autowired
     private DoctorRepository doctorRepository;
@@ -318,7 +318,7 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
             Patient.builder()
                 .fullName("John Doe")
                 .documentNumber("123456")
-                .phoneNumber("324-123-4567")
+                .phoneNumber("3241234567")
                 .email("johndoe@gmail.com")
                 .createdAt(Instant.now())
                 .status(PatientStatus.ACTIVE)
@@ -411,7 +411,7 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
             Patient.builder()
                 .fullName("John Doe")
                 .documentNumber("123456")
-                .phoneNumber("324-123-4567")
+                .phoneNumber("3241234567")
                 .email("johndoe@gmail.com")
                 .createdAt(Instant.now())
                 .status(PatientStatus.ACTIVE)
@@ -475,7 +475,7 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
             Patient.builder()
                 .fullName("John Doe")
                 .documentNumber("123456")
-                .phoneNumber("324-123-4567")
+                .phoneNumber("3241234567")
                 .email("johndoe@gmail.com")
                 .createdAt(Instant.now())
                 .status(PatientStatus.ACTIVE)
