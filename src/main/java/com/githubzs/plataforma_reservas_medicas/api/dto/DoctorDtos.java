@@ -33,43 +33,19 @@ public class DoctorDtos {
         UUID specialtyId
     ) implements Serializable {}
 
-
     public record DoctorUpdateRequest(
-    @Size(max = 100)
-    String fullName,        // null = no actualizar
+        @Size(max = 100)
+        String fullName,
+        @Size(max = 320)
+        String email
+    ) implements Serializable {}
 
-    @Size(max = 320)
-    String email,           // null = no actualizar
-
-    @Size(max = 50)
-    String licenseNumber,   // null = no actualizar
-
-    @Size(max = 50)
-    String documentNumber,  // null = no actualizar
-
-    UUID specialtyId        // null = no actualizar
+    public record DoctorStatusUpdateRequest(
+        @NotNull
+        DoctorStatus status
     ) implements Serializable {}
 
     public record DoctorResponse(
-        UUID id, 
-        String fullName, 
-        String email,  
-        SpecialtySummaryResponse specialty, 
-        DoctorStatus status,  
-        Instant createdAt,
-        Instant updatedAt
-    ) implements Serializable {}
-
-    public record DoctorSummaryResponse(
-        UUID id, 
-        String fullName, 
-        String email, 
-        DoctorStatus status, 
-        SpecialtySummaryResponse specialty
-    ) implements Serializable {}
-
-    // Por si se necesita una respuesta con más detalles, como las citas y horarios asociados al doctor
-    public record DoctorDetailResponse(
         UUID id, 
         String fullName, 
         String email,  
@@ -80,4 +56,15 @@ public class DoctorDtos {
         Set<AppointmentSummaryResponse> appointments, 
         Set<DoctorScheduleSummaryResponse> schedules
     ) implements Serializable {}
+
+    public record DoctorSummaryResponse(
+        UUID id, 
+        String fullName, 
+        String email,  
+        SpecialtySummaryResponse specialty, 
+        DoctorStatus status,  
+        Instant createdAt,
+        Instant updatedAt
+    ) implements Serializable {}
+
 }

@@ -10,7 +10,6 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummary
 public class DoctorScheduleDtos {
 
     public record DoctorScheduleCreateRequest(
-        UUID doctorId,
         DayOfWeek dayOfWeek,
         LocalTime startTime,
         LocalTime endTime

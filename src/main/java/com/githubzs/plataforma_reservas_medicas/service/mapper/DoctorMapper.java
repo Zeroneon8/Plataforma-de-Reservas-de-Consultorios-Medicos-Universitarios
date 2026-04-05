@@ -7,7 +7,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorDetailResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
@@ -37,13 +36,10 @@ public interface DoctorMapper {
     void applyUpdate(DoctorUpdateRequest request, @MappingTarget Doctor doctor);
 
     @Mapping(target = "specialty", source = "specialty")
-    DoctorResponse toResponse(Doctor doctor);
-
-    @Mapping(target = "specialty", source = "specialty")
     DoctorSummaryResponse toSummaryResponse(Doctor doctor);
 
     @Mapping(target = "specialty",     source = "specialty")
     @Mapping(target = "schedules",     source = "schedules")
     @Mapping(target = "appointments",  source = "appointments")
-    DoctorDetailResponse toDetailResponse(Doctor doctor);
+    DoctorResponse toResponse(Doctor doctor);
 }
