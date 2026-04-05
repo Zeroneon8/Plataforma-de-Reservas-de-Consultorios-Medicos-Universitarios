@@ -34,6 +34,22 @@ public class DoctorDto {
     ) implements Serializable {}
 
 
+    public record DoctorUpdateRequest(
+    @Size(max = 100)
+    String fullName,        // null = no actualizar
+
+    @Size(max = 320)
+    String email,           // null = no actualizar
+
+    @Size(max = 50)
+    String licenseNumber,   // null = no actualizar
+
+    @Size(max = 50)
+    String documentNumber,  // null = no actualizar
+
+    UUID specialtyId        // null = no actualizar
+    ) implements Serializable {}
+
     public record DoctorResponse(
         UUID id, 
         String fullName, 

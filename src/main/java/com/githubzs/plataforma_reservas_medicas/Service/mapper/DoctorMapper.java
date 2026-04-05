@@ -1,12 +1,16 @@
 package com.githubzs.plataforma_reservas_medicas.Service.mapper;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorDetailResponse;
 import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorResponse;
 import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 
@@ -21,6 +25,16 @@ public interface DoctorMapper {
     @Mapping(target = "schedules",    ignore = true)
     @Mapping(target = "specialty",    source = "specialty")
     Doctor toEntity(DoctorCreateRequest request, Specialty specialty);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id",           ignore = true)
+    @Mapping(target = "status",       ignore = true)
+    @Mapping(target = "createdAt",    ignore = true)
+    @Mapping(target = "updatedAt",    ignore = true)
+    @Mapping(target = "appointments", ignore = true)
+    @Mapping(target = "schedules",    ignore = true)
+    @Mapping(target = "specialty",    ignore = true) // el servicio resuelve Specialty por specialtyId
+    void applyUpdate(DoctorUpdateRequest request, @MappingTarget Doctor doctor);
 
     @Mapping(target = "specialty", source = "specialty")
     DoctorResponse toResponse(Doctor doctor);

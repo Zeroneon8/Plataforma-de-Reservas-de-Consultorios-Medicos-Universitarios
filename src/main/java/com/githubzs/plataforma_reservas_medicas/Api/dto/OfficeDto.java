@@ -27,6 +27,20 @@ public class OfficeDto {
         int roomNumber
     ) implements Serializable {}
 
+    public record OfficeUpdateRequest(
+    @Size(max = 100)
+    String name,            // null = no actualizar
+
+    @Size(max = 100)
+    String location,        // null = no actualizar
+
+    @Size(max = 255)
+    String description,     // null = no actualizar
+
+    @Positive
+    Integer roomNumber      // Integer (no int) para permitir null
+    ) implements Serializable {}
+
     public record OfficeResponse(
         UUID id,
         String name,

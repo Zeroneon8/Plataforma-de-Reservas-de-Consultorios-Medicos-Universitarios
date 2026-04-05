@@ -32,6 +32,23 @@ public class PatientDto {
         String studentCode
     ) implements Serializable {}
 
+    public record PatientUpdateRequest(
+    @Size(max = 100)
+    String fullName,        // null = no actualizar
+
+    @Size(max = 320)
+    String email,           // null = no actualizar
+
+    @Size(max = 20)
+    String phoneNumber,     // null = no actualizar
+
+    @Size(max = 50)
+    String documentNumber,  // null = no actualizar
+
+    @Size(max = 50)
+    String studentCode      // null = no actualizar
+    ) implements Serializable {}
+
        
     public record PatientResponse(
         UUID id, 
