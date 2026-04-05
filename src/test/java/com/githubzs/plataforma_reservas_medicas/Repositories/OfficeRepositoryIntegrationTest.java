@@ -3,6 +3,7 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,19 +90,11 @@ public class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
     @Test
     @DisplayName("Office: No detecta la existencia de un consultorio si el estado coincide pero el id no")
     void shouldReturnFalseWhenIdDoesNotMatchForExistByIdAndStatus() {
-        // Given
-        officeRepository.save(
-            Office.builder()
-            .name("Consultorio de pediatría")
-            .location("Edificio norte")
-            .roomNumber(202)
-            .createdAt(Instant.now())
-            .status(OfficeStatus.MAINTENANCE)
-            .build()
-        );
+        // Given - ya creado en el setUp()
+        var altId = new UUID(office.getId().getMostSignificantBits(), office.getId().getLeastSignificantBits() + 1);
 
         // When
-        var exist = officeRepository.existsByIdAndStatus(office.getId(), OfficeStatus.MAINTENANCE);
+        var exist = officeRepository.existsByIdAndStatus(altId, OfficeStatus.AVAILABLE);
 
         // Then
         assertThat(exist).isFalse();

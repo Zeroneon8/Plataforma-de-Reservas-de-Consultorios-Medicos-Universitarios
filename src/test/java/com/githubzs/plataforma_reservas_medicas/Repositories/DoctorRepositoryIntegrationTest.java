@@ -2,6 +2,7 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -137,14 +138,10 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     @DisplayName("Doctor: No encuentra doctores cuando la especialidad no coincide")
     void shouldReturnEmptyWhenSpecialtyDoesNotMatchForFindBySpecialtyId() {
         // Given
-        var specialty2 = specialtyRepository.save(
-            Specialty.builder()
-                .name("Psicología")
-                .build()
-        );
+        var altId = new UUID(specialty.getId().getMostSignificantBits(), specialty.getId().getLeastSignificantBits() + 1);
 
         // When
-        var found = doctorRepository.findBySpecialty_Id(specialty2.getId(), Pageable.ofSize(10));
+        var found = doctorRepository.findBySpecialty_Id(altId, Pageable.ofSize(10));
 
         // Then
         assertThat(found).isEmpty();
@@ -277,21 +274,11 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     @DisplayName("Doctor: No detecta la existencia de un doctor si el estado coincide pero el ID no")
     void shouldReturnFalseWhenIdDoesNotMatchForExistsByIdAndStatus() {
         // Given
-        doctorRepository.save(
-            Doctor.builder()
-            .fullName("Dra. Grey")
-            .documentNumber("222222")
-            .licenseNumber("LIC-002")
-            .email("drgrey@doctor.com")
-            .status(DoctorStatus.INACTIVE)
-            .specialty(specialty)
-            .createdAt(Instant.now())
-            .build()
-        );
+        var altId = new UUID(doctor.getId().getMostSignificantBits(), doctor.getId().getLeastSignificantBits() + 1);
 
         // When
         var exists = doctorRepository.existsByIdAndStatus(
-            doctor.getId(), DoctorStatus.INACTIVE
+            altId, DoctorStatus.ACTIVE
         );
 
         // Then

@@ -44,6 +44,7 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
     @Autowired
     private SpecialtyRepository specialtyRepository;
 
+    // Datos base utilizados en todos los tests
     private Doctor doctor;
     private Office office;
     private AppointmentType appointmentType;
@@ -86,7 +87,7 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         );
     }
 
-    private Patient buildPatient(String fullName, String documentNumber, String email) {
+    private Patient buildDefaultPatient(String fullName, String documentNumber, String email) {
         return Patient.builder()
             .fullName(fullName)
             .documentNumber(documentNumber)
@@ -97,7 +98,7 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
             .build();
     }
 
-    private Appointment buildAppointment(Patient patient, LocalDateTime start, AppointmentStatus status) {
+    private Appointment buildDefaultAppointment(Patient patient, LocalDateTime start, AppointmentStatus status) {
         return Appointment.builder()
             .patient(patient)
             .doctor(doctor)
@@ -111,35 +112,50 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Debe verificar si existe un paciente por ID y status")
-    void shouldExistsByIdAndStatus() {
+    @DisplayName("Patient: Detecta si existe un paciente especifico con un estado dado")
+    void shouldExistByIdAndStatus() {
         // Given
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // When
-        var existsWithCorrectIdAndStatus = patientRepository.existsByIdAndStatus(
-            patient.getId(), PatientStatus.ACTIVE
-        );
-        var existsWithWrongId = patientRepository.existsByIdAndStatus(
-            UUID.randomUUID(), PatientStatus.ACTIVE
-        );
-        var existsWithWrongStatus = patientRepository.existsByIdAndStatus(
-            patient.getId(), PatientStatus.INACTIVE
-        );
+        var exist = patientRepository.existsByIdAndStatus(patient.getId(), PatientStatus.ACTIVE);
 
         // Then
-        assertThat(existsWithCorrectIdAndStatus).isTrue();
+        assertThat(exist).isTrue();
+    }
 
-        // Verificación inversa
-        assertThat(existsWithWrongId).isFalse();
-        assertThat(existsWithWrongStatus).isFalse();
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente si el id coincide pero el estado no")
+    void shouldReturnFalseWhenStatusDoesNotMatchForExistByIdAndStatus() {
+        // Given
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exist = patientRepository.existsByIdAndStatus(patient.getId(), PatientStatus.INACTIVE);
+
+        // Then
+        assertThat(exist).isFalse();
+    }
+
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente si el estado coincide pero el id no")
+    void shouldReturnFalseWhenIdDoesNotMatchForExistByIdAndStatus() {
+        // Given
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var altId = new UUID(patient1.getId().getMostSignificantBits(), patient1.getId().getLeastSignificantBits() + 1);
+
+        // When
+        var exist = patientRepository.existsByIdAndStatus(altId, PatientStatus.ACTIVE);
+
+        // Then
+        assertThat(exist).isFalse();
     }
 
     @Test
     @DisplayName("Debe encontrar un paciente por número de documento")
     void shouldFindByDocumentNumber() {
         // Given
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // When
         var found = patientRepository.findByDocumentNumber("123456");
@@ -165,17 +181,17 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         var from = now.minusDays(1);
         var to = now.plusDays(1);
 
-        var patient = patientRepository.save(buildPatient("John Doe", "123456", "johndoe@gmail.com"));
+        var patient = patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // 2 NO_SHOW dentro del rango
-        appointmentRepository.save(buildAppointment(patient, now, AppointmentStatus.NO_SHOW));
-        appointmentRepository.save(buildAppointment(patient, now.plusHours(1), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, now, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, now.plusHours(1), AppointmentStatus.NO_SHOW));
 
         // CONFIRMED dentro del rango - no debe contar
-        appointmentRepository.save(buildAppointment(patient, now.plusHours(2), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(patient, now.plusHours(2), AppointmentStatus.CONFIRMED));
 
         // NO_SHOW fuera del rango - no debe contar
-        appointmentRepository.save(buildAppointment(patient, now.plusDays(5), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient, now.plusDays(5), AppointmentStatus.NO_SHOW));
 
         // When
         var count = patientRepository.countNoShowByPatient(patient.getId(), from, to);
@@ -206,29 +222,29 @@ public class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         var to = now.plusDays(1);
 
         // Patient1 - 2 NO_SHOW → debe quedar primero
-        var patient1 = patientRepository.save(buildPatient("John Doe", "111111", "johndoe@gmail.com"));
+        var patient1 = patientRepository.save(buildDefaultPatient("John Doe", "111111", "johndoe@gmail.com"));
 
         // Patient2 - 1 NO_SHOW → debe quedar segundo
-        var patient2 = patientRepository.save(buildPatient("Jane Smith", "222222", "janesmith@gmail.com"));
+        var patient2 = patientRepository.save(buildDefaultPatient("Jane Smith", "222222", "janesmith@gmail.com"));
 
         // Patient3 - solo CONFIRMED → no debe aparecer en el resultado
-        var patient3 = patientRepository.save(buildPatient("Bob Martin", "333333", "bobmartin@gmail.com"));
+        var patient3 = patientRepository.save(buildDefaultPatient("Bob Martin", "333333", "bobmartin@gmail.com"));
 
         // 2 NO_SHOW para patient1
-        appointmentRepository.save(buildAppointment(patient1, now, AppointmentStatus.NO_SHOW));
-        appointmentRepository.save(buildAppointment(patient1, now.plusHours(1), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient1, now, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient1, now.plusHours(1), AppointmentStatus.NO_SHOW));
 
         // 1 NO_SHOW para patient2
-        appointmentRepository.save(buildAppointment(patient2, now, AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient2, now, AppointmentStatus.NO_SHOW));
 
         // CONFIRMED para patient1 - no debe contar
-        appointmentRepository.save(buildAppointment(patient1, now.plusHours(2), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(patient1, now.plusHours(2), AppointmentStatus.CONFIRMED));
 
         // NO_SHOW fuera del rango para patient2 - no debe contar
-        appointmentRepository.save(buildAppointment(patient2, now.plusDays(5), AppointmentStatus.NO_SHOW));
+        appointmentRepository.save(buildDefaultAppointment(patient2, now.plusDays(5), AppointmentStatus.NO_SHOW));
 
         // Solo CONFIRMED para patient3 - no debe aparecer
-        appointmentRepository.save(buildAppointment(patient3, now, AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(patient3, now, AppointmentStatus.CONFIRMED));
 
         // When
         var result = patientRepository.countPatientsNoShow(from, to);

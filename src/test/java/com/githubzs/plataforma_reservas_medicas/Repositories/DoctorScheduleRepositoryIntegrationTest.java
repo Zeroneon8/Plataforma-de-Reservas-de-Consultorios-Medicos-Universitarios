@@ -3,6 +3,7 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 import java.time.Instant;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -125,20 +126,10 @@ public class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryI
              .build()
             );
 
-        var Doctor2 = doctorRepository.save(
-            Doctor.builder()
-                .fullName("Dr. Adams") 
-                .documentNumber("122345")
-                .licenseNumber("LIC-002")
-                .email("dradams@doctor.com")
-                .status(DoctorStatus.ACTIVE)
-                .specialty(specialty)
-                .createdAt(Instant.now())
-                .build()
-        );
+        var altId = new UUID(doctor.getId().getMostSignificantBits(), doctor.getId().getLeastSignificantBits() + 1);
         
         // When
-        var schedules = doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(Doctor2.getId(), DayOfWeek.MONDAY);
+        var schedules = doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(altId, DayOfWeek.MONDAY);
         
         // Then
         assertThat(schedules).isEmpty();
