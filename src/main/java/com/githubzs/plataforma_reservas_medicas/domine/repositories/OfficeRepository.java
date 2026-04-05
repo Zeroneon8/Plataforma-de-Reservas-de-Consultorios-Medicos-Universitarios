@@ -24,6 +24,9 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
     @Query("""
      SELECT new com.githubzs.plataforma_reservas_medicas.domine.dto.OfficeOccupancyDto(
       o.id,
+      o.name,
+      o.location,
+      o.roomNumber,
       COUNT(a),
       COALESCE(SUM(at.durationMinutes), 0),
       COALESCE(SUM(CASE WHEN a.status = com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.NO_SHOW THEN 1 ELSE 0 END), 0)
@@ -34,7 +37,7 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
      AND a.startAt < :to
      AND a.status <> com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus.CANCELLED
      LEFT JOIN a.appointmentType at
-     GROUP BY o.id
+     GROUP BY o.id, o.name, o.location, o.roomNumber
      ORDER BY COUNT(a) DESC
     """)
     List<OfficeOccupancyDto> calculateOfficeOccupancyBetween(

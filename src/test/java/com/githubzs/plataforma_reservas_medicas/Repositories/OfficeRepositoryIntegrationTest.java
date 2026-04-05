@@ -278,6 +278,12 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         assertThat(result).hasSize(3);
         assertThat(result).extracting("officeId")
             .containsExactly(office.getId(), office2.getId(), office3.getId());
+        assertThat(result).extracting("officeName")
+            .containsExactly(office.getName(), office2.getName(), office3.getName());
+        assertThat(result).extracting("officeLocation")
+            .containsExactly(office.getLocation(), office2.getLocation(), office3.getLocation());
+        assertThat(result).extracting("roomNumber")
+            .containsExactly(office.getRoomNumber(), office2.getRoomNumber(), office3.getRoomNumber());
         assertThat(result).extracting("appointmentCount")
             .containsExactly(2L, 1L, 0L);
         assertThat(result).extracting("minutesOccupied")
@@ -363,6 +369,12 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         assertThat(result).hasSize(1);
         assertThat(result).extracting("officeId")
             .containsExactly(office.getId());
+        assertThat(result).extracting("officeName")
+            .containsExactly(office.getName());
+        assertThat(result).extracting("officeLocation")
+            .containsExactly(office.getLocation());
+        assertThat(result).extracting("roomNumber")
+            .containsExactly(office.getRoomNumber());
         assertThat(result).extracting("appointmentCount")
             .containsExactly(0L);
         assertThat(result).extracting("minutesOccupied")
@@ -448,6 +460,12 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         assertThat(result).hasSize(1);
         assertThat(result).extracting("officeId")
             .containsExactly(office.getId());
+        assertThat(result).extracting("officeName")
+            .containsExactly(office.getName());
+        assertThat(result).extracting("officeLocation")
+            .containsExactly(office.getLocation());
+        assertThat(result).extracting("roomNumber")
+            .containsExactly(office.getRoomNumber());
         assertThat(result).extracting("appointmentCount")
             .containsExactly(0L);
         assertThat(result).extracting("minutesOccupied")
