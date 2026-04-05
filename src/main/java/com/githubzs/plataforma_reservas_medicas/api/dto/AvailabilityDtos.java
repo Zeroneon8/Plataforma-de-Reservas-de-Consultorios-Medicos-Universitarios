@@ -2,22 +2,15 @@ package com.githubzs.plataforma_reservas_medicas.api.dto;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.UUID;
 
 public class AvailabilityDtos {
 
     public record AvailabilitySlotResponse(
-        UUID doctorId,
-        String doctorFullName,
-        UUID officeId,
-        String officeName,
         LocalDate date,
         LocalTime slotStart,
-        LocalTime slotEnd,
-        int durationMinutes
+        LocalTime slotEnd
     ) implements Serializable {}
 
     public record OfficeOccupancyResponse(
@@ -25,13 +18,9 @@ public class AvailabilityDtos {
         String officeName,
         String officeLocation,
         int roomNumber,
-        LocalDate from,
-        LocalDate to,
-        int totalAppointments,
-        int completedAppointments,
-        int cancelledAppointments,
-        int pendingAppointments,
-        double occupancyPercentage
+        long appointmentCount,
+        long minutesOccupied,
+        long noShowCount
     ) implements Serializable {}
 
 }
