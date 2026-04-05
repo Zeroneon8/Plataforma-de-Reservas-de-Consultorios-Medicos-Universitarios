@@ -15,20 +15,22 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Patient;
 @Mapper(componentModel = "spring", uses = { AppointmentMapper.class })
 public interface PatientMapper {
 
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true) // el servicio asigna ACTIVE
-    @Mapping(target = "createdAt",    ignore = true) // el servicio lo asigna
-    @Mapping(target = "updatedAt",    ignore = true) // el servicio lo asigna
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // Se setea en el servicio
+    @Mapping(target = "createdAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
     @Mapping(target = "appointments", ignore = true)
     Patient toEntity(PatientCreateRequest request);
     
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id",           ignore = true)
-    @Mapping(target = "status",       ignore = true)
-    @Mapping(target = "createdAt",    ignore = true)
-    @Mapping(target = "updatedAt",    ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "documentNumber", ignore = true)
+    @Mapping(target = "studentCode", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "appointments", ignore = true)
-    void applyUpdate(PatientUpdateRequest request, @MappingTarget Patient patient);
+    void patch(PatientUpdateRequest request, @MappingTarget Patient patient);
 
     PatientResponse toResponse(Patient patient);
 

@@ -11,10 +11,9 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 @Mapper(componentModel = "spring", uses = { DoctorMapper.class })
 public interface SpecialtyMapper {
 
-    @Mapping(target = "id",      ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "doctors", ignore = true)
     Specialty toEntity(SpecialtyCreateRequest request);
-
    
     SpecialtyResponse toResponse(Specialty specialty);
 
