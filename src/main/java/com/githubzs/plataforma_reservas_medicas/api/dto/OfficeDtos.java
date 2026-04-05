@@ -5,14 +5,14 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-public class OfficeDto {
+public class OfficeDtos {
 
     public record OfficeCreateRequest(
         @NotBlank

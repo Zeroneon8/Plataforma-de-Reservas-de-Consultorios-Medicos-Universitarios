@@ -4,13 +4,13 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-public class AppointmentTypeDto {
+public class AppointmentTypeDtos {
 
     public record AppointmentTypeCreateRequest(
         @NotBlank
@@ -26,15 +26,15 @@ public class AppointmentTypeDto {
         UUID id,
         String name,
         String description,
-        int durationMinutes
+        int durationMinutes,
+        Set<AppointmentSummaryResponse> appointments
     ) implements Serializable {}
 
-    public record AppointmentTypeDetailResponse(
+    public record AppointmentTypeSummaryResponse(
         UUID id,
         String name,
         String description,
-        int durationMinutes,
-        Set<AppointmentSummaryResponse> appointments
+        int durationMinutes
     ) implements Serializable {}
     
 }

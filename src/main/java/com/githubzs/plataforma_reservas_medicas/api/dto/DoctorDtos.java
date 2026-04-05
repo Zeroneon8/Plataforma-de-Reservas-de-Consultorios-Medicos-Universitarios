@@ -5,16 +5,16 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDto.DoctorScheduleSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtySummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtySummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class DoctorDto {
+public class DoctorDtos {
 
     public record DoctorCreateRequest(
         @NotBlank

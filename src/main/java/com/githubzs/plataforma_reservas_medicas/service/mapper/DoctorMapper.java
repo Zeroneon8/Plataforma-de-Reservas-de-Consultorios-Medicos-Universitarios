@@ -6,11 +6,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorDetailResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorUpdateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorDetailResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 

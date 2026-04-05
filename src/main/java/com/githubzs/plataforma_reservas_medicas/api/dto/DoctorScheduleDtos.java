@@ -5,9 +5,9 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 
-public class DoctorScheduleDto {
+public class DoctorScheduleDtos {
 
     public record DoctorScheduleCreateRequest(
         UUID doctorId,
@@ -30,4 +30,5 @@ public class DoctorScheduleDto {
         LocalTime startTime,
         LocalTime endTime
     ) implements Serializable {}
+    
 }

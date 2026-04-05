@@ -3,10 +3,10 @@ package com.githubzs.plataforma_reservas_medicas.service.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDto.AppointmentTypeCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDto.AppointmentTypeDetailResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDto.AppointmentTypeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 
@@ -21,5 +21,5 @@ public interface AppointmentTypeMapper {
 
     AppointmentSummaryResponse toSummaryResponse(Appointment appointment);
     
-    AppointmentTypeDetailResponse toDetailResponse(AppointmentType appointmentType);
+    AppointmentTypeResponse toDetailResponse(AppointmentType appointmentType);
 }

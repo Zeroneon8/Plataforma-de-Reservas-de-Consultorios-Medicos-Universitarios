@@ -4,20 +4,21 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class SpecialtyDto {
-     public record SpecialtyCreateRequest( 
+public class SpecialtyDtos {
+    
+    public record SpecialtyCreateRequest( 
         @NotBlank @Size(max = 100) 
         String name, 
         @Size(max = 255) 
         String description
     ) implements Serializable{}
 
-     public record SpecialtyResponse(
+    public record SpecialtyResponse(
         UUID id, 
         String name, 
         String description, 

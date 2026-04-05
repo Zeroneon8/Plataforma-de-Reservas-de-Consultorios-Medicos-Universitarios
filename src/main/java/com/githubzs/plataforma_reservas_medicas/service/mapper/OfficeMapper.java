@@ -6,11 +6,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeDetailResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeUpdateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeDetailResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
 
 @Mapper(componentModel = "spring", uses = { AppointmentMapper.class })

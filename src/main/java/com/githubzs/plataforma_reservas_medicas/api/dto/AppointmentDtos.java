@@ -5,17 +5,17 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDto.AppointmentTypeResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDto.OfficeSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDto.PatientSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class AppointmentDto {
+public class AppointmentDtos {
     
     public record AppointmentCreateRequest(
         @NotNull

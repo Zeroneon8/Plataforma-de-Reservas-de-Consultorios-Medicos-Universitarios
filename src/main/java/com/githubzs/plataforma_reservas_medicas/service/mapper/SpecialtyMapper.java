@@ -3,9 +3,9 @@ package com.githubzs.plataforma_reservas_medicas.service.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtyCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtyResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtySummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtySummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 
 @Mapper(componentModel = "spring", uses = { DoctorMapper.class })
