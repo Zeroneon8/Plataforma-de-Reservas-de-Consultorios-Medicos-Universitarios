@@ -2,7 +2,6 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -275,13 +274,24 @@ public class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
-    @DisplayName("Doctor: No detecta la existencia de un doctor si el estdo coincide pero el ID no")
+    @DisplayName("Doctor: No detecta la existencia de un doctor si el estado coincide pero el ID no")
     void shouldReturnFalseWhenIdDoesNotMatchForExistsByIdAndStatus() {
-        // Given - ya creado en el setUp()
+        // Given
+        doctorRepository.save(
+            Doctor.builder()
+            .fullName("Dra. Grey")
+            .documentNumber("222222")
+            .licenseNumber("LIC-002")
+            .email("drgrey@doctor.com")
+            .status(DoctorStatus.INACTIVE)
+            .specialty(specialty)
+            .createdAt(Instant.now())
+            .build()
+        );
 
         // When
         var exists = doctorRepository.existsByIdAndStatus(
-            UUID.randomUUID(), DoctorStatus.ACTIVE
+            doctor.getId(), DoctorStatus.INACTIVE
         );
 
         // Then
