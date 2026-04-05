@@ -7,7 +7,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientDetailResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientUpdateRequest;
@@ -35,6 +34,4 @@ public interface PatientMapper {
 
     PatientSummaryResponse toSummaryResponse(Patient patient);
 
-    
-    PatientDetailResponse toDetailResponse(Patient patient);
 }

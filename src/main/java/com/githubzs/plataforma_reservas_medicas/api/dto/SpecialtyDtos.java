@@ -12,7 +12,8 @@ import jakarta.validation.constraints.Size;
 public class SpecialtyDtos {
     
     public record SpecialtyCreateRequest( 
-        @NotBlank @Size(max = 100) 
+        @NotBlank 
+        @Size(max = 100) 
         String name, 
         @Size(max = 255) 
         String description

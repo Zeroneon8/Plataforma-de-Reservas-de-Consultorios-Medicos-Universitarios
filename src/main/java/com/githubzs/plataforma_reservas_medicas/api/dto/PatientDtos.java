@@ -33,20 +33,12 @@ public class PatientDtos {
     ) implements Serializable {}
 
     public record PatientUpdateRequest(
-    @Size(max = 100)
-    String fullName,        // null = no actualizar
-
-    @Size(max = 320)
-    String email,           // null = no actualizar
-
-    @Size(max = 20)
-    String phoneNumber,     // null = no actualizar
-
-    @Size(max = 50)
-    String documentNumber,  // null = no actualizar
-
-    @Size(max = 50)
-    String studentCode      // null = no actualizar
+        @Size(max = 100)
+        String fullName,
+        @Size(max = 320)
+        String email,
+        @Size(max = 20)
+        String phoneNumber
     ) implements Serializable {}
 
        
@@ -59,7 +51,8 @@ public class PatientDtos {
         String studentCode, 
         PatientStatus status, 
         Instant createdAt, 
-        Instant updatedAt
+        Instant updatedAt,
+        Set<AppointmentSummaryResponse> appointments
     ) implements Serializable {}
 
     public record PatientSummaryResponse(
@@ -69,20 +62,9 @@ public class PatientDtos {
         String phoneNumber, 
         String documentNumber, 
         String studentCode, 
-        PatientStatus status
-    ) implements Serializable {}
-    
-    // Por si se necesita una respuesta con más detalles, como las citas asociadas al paciente
-    public record PatientDetailResponse(
-        UUID id, 
-        String fullName,
-        String email, 
-        String phoneNumber, 
-        String documentNumber, 
-        String studentCode, 
         PatientStatus status, 
         Instant createdAt, 
-        Instant updatedAt, 
-        Set<AppointmentSummaryResponse> appointments
+        Instant updatedAt
     ) implements Serializable {}
+
 }

@@ -28,17 +28,14 @@ public class OfficeDtos {
     ) implements Serializable {}
 
     public record OfficeUpdateRequest(
-    @Size(max = 100)
-    String name,            // null = no actualizar
-
-    @Size(max = 100)
-    String location,        // null = no actualizar
-
-    @Size(max = 255)
-    String description,     // null = no actualizar
-
-    @Positive
-    Integer roomNumber      // Integer (no int) para permitir null
+        @Size(max = 100)
+        String name,    
+        @Size(max = 100)
+        String location,  
+        @Size(max = 255)
+        String description,     
+        @Positive
+        Integer roomNumber      // Integer (no int) para permitir null
     ) implements Serializable {}
 
     public record OfficeResponse(
@@ -49,7 +46,8 @@ public class OfficeDtos {
         int roomNumber,
         OfficeStatus status,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        Set<AppointmentSummaryResponse> appointments
     ) implements Serializable {}
 
     public record OfficeSummaryResponse(
@@ -57,19 +55,9 @@ public class OfficeDtos {
         String name,
         String location,
         int roomNumber,
-        OfficeStatus status
-    ) implements Serializable {}
-
-    // Para GET /offices/{id} con sus citas asociadas
-    public record OfficeDetailResponse(
-        UUID id,
-        String name,
-        String location,
-        String description,
-        int roomNumber,
         OfficeStatus status,
         Instant createdAt,
-        Instant updatedAt,
-        Set<AppointmentSummaryResponse> appointments
+        Instant updatedAt
     ) implements Serializable {}
+
 }

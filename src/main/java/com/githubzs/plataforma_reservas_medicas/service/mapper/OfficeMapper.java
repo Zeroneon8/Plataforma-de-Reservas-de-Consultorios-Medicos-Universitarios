@@ -7,7 +7,6 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeDetailResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeUpdateRequest;
@@ -34,7 +33,5 @@ public interface OfficeMapper {
     OfficeResponse toResponse(Office office);
 
     OfficeSummaryResponse toSummaryResponse(Office office);
-
-   
-    OfficeDetailResponse toDetailResponse(Office office);
+    
 }
