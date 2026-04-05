@@ -63,16 +63,16 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         return mapper.toResponse(saved);
     }
 
-    /*@Override
+    @Override
     @Transactional(readOnly = true)
     public List<DoctorScheduleResponse> findByDoctor(UUID doctorId) {
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
-        return scheduleRepository.findByDoctorId(doctorId).stream()
+        return scheduleRepository.findByDoctor_Id(doctorId).stream()
                 .map(mapper::toResponse)
                 .toList();
-    }*/
+    }
 
     @Override
     @Transactional(readOnly = true)

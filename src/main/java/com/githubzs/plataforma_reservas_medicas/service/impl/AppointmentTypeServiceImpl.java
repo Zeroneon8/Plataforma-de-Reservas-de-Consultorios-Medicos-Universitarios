@@ -32,9 +32,6 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
     public AppointmentTypeResponse create(AppointmentTypeCreateRequest request) {
         Objects.requireNonNull(request, "Appointment type request is required");
         String name = request.name();
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Appointment type name is required");
-        }
 
         if (repository.existsByNameIgnoreCase(name.trim())) {
             throw new ConflictException("An appointment type with the same name already exists");
