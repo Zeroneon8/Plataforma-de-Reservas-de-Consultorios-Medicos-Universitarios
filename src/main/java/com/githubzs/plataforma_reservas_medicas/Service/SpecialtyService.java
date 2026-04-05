@@ -1,7 +1,7 @@
-package  com.githubzs.plataforma_reservas_medicas.Service;
+package  com.githubzs.plataforma_reservas_medicas.service;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.SpecialtyDto.SpecialtyCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.SpecialtyDto.SpecialtyResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtyCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDto.SpecialtyResponse;
 
 public interface SpecialtyService {
     

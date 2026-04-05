@@ -1,4 +1,4 @@
-package com.githubzs.plataforma_reservas_medicas.Api.dto;
+package com.githubzs.plataforma_reservas_medicas.api.dto;
 
 import java.io.Serializable;
 import java.time.LocalDate;

@@ -1,14 +1,14 @@
-package com.githubzs.plataforma_reservas_medicas.Service.mapper;
+package com.githubzs.plataforma_reservas_medicas.service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentCancelRequest;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentCompleteRequestDto;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentCancelRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentCompleteRequestDto;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;

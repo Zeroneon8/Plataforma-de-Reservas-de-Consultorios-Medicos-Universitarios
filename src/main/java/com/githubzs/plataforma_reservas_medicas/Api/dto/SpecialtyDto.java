@@ -1,10 +1,10 @@
-package com.githubzs.plataforma_reservas_medicas.Api.dto;
+package com.githubzs.plataforma_reservas_medicas.api.dto;
 
 import java.io.Serializable;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorDto.DoctorSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDto.DoctorSummaryResponse;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

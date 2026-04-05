@@ -1,4 +1,4 @@
-package com.githubzs.plataforma_reservas_medicas.Api.dto;
+package com.githubzs.plataforma_reservas_medicas.api.dto;
 
 
 import java.io.Serializable;
@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.AppointmentDto.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDto.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 
 import jakarta.validation.constraints.NotBlank;

@@ -1,11 +1,11 @@
-package com.githubzs.plataforma_reservas_medicas.Service.mapper;
+package com.githubzs.plataforma_reservas_medicas.service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorScheduleDto.DoctorScheduleCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorScheduleDto.DoctorScheduleResponse;
-import com.githubzs.plataforma_reservas_medicas.Api.dto.DoctorScheduleDto.DoctorScheduleSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDto.DoctorScheduleCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDto.DoctorScheduleResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDto.DoctorScheduleSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.DoctorSchedule;
 
