@@ -6,7 +6,6 @@ import org.mapstruct.Mapping;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 
