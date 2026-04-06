@@ -16,9 +16,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 
 public interface OfficeRepository extends JpaRepository<Office, UUID> {
 
-    boolean existsByName(String name);
-
-    boolean existsByRoomNumber(int roomNumber);
+    boolean existsByIdAndStatus(UUID id, OfficeStatus status);
 
     Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
 

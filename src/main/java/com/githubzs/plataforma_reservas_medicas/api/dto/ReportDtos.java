@@ -18,4 +18,14 @@ public class ReportDtos {
         long totalNoShows
     ) implements Serializable {}
 
+     public record OfficeOccupancyResponse(
+        UUID officeId,
+        String officeName,
+        String officeLocation,
+        int roomNumber,
+        long appointmentCount,
+        long minutesOccupied,
+        long noShowCount
+    ) implements Serializable {}
+
 }
