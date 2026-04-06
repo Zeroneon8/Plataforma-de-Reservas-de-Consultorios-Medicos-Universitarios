@@ -35,12 +35,12 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional
     public OfficeResponse create(OfficeCreateRequest request) {
-        /*if (officeRepository.existsByName(request.name())) {
+        if (officeRepository.existsByNameIgnoreCase(request.name())) {
             throw new ConflictException("An office with the same name already exists");
         }
-        if (officeRepository.existsByRoomNumber(request.roomNumber())) {
+        /*if (officeRepository.existsByRoomNumber(request.roomNumber())) {
             throw new ConflictException("An office with the same room number already exists");
-        }*/
+        }*/ //LA CAGUE EN ESTA MONDAAAA PORQUE PUSE EL METODO COMO STRING Y ERA COMO INT. HAY QUE CORREGIR EN CAPA REPOSITORY.
 
         Office office = mapper.toEntity(request);
         office.setStatus(OfficeStatus.AVAILABLE);

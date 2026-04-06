@@ -41,7 +41,7 @@ public class DoctorServiceImpl implements DoctorService {
         Specialty specialty = specialtyRepository.findById(request.specialtyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Specialty not found with id " + request.specialtyId()));
 
-        /*if (doctorRepository.existsByDocumentNumber(request.documentNumber())) {
+        if (doctorRepository.existsByDocumentNumber(request.documentNumber())) {
             throw new ConflictException("A doctor with the same document number already exists");
         }
         if (doctorRepository.existsByLicenseNumber(request.licenseNumber())) {
@@ -49,7 +49,7 @@ public class DoctorServiceImpl implements DoctorService {
         }
         if (doctorRepository.existsByEmailIgnoreCase(request.email())) {
             throw new ConflictException("A doctor with the same email already exists");
-        }*/
+        }
 
         Doctor doctor = mapper.toEntity(request);
         doctor.setSpecialty(specialty);
