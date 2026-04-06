@@ -20,6 +20,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundExcept
 import com.githubzs.plataforma_reservas_medicas.service.PatientService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientMapper;
 
+<<<<<<< HEAD
 @Service
 public class PatientServiceImpl implements PatientService {
 
@@ -30,11 +31,23 @@ public class PatientServiceImpl implements PatientService {
         this.repository = repository;
         this.mapper = mapper;
     }
+=======
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class PatientServiceImpl implements PatientService {
+
+    private final PatientRepository patientRepository;
+    private final PatientMapper mapper;
+
+>>>>>>> repository-layer
 
     @Override
     @Transactional
     public PatientResponse create(PatientCreateRequest request) {
         Objects.requireNonNull(request, "Patient create request is required");
+<<<<<<< HEAD
         validateRequest(request);
 
         if (repository.existsByDocumentNumber(request.documentNumber())) {
@@ -44,13 +57,27 @@ public class PatientServiceImpl implements PatientService {
             throw new ConflictException("A patient with the same email already exists");
         }
         if (request.studentCode() != null && !request.studentCode().isBlank() && repository.existsByStudentCodeIgnoreCase(request.studentCode())) {
+=======
+
+        if (patientRepository.existsByDocumentNumber(request.documentNumber())) {
+            throw new ConflictException("A patient with the same document number already exists");
+        }
+        if (patientRepository.existsByEmailIgnoreCase(request.email())) {
+            throw new ConflictException("A patient with the same email already exists");
+        }
+        if (request.studentCode() != null && !request.studentCode().isBlank() && patientRepository.existsByStudentCodeIgnoreCase(request.studentCode())) {
+>>>>>>> repository-layer
             throw new ConflictException("A patient with the same student code already exists");
         }
 
         Patient patient = mapper.toEntity(request);
         patient.setStatus(PatientStatus.ACTIVE);
         patient.setCreatedAt(Instant.now());
+<<<<<<< HEAD
         Patient saved = repository.save(patient);
+=======
+        Patient saved = patientRepository.save(patient);
+>>>>>>> repository-layer
         return mapper.toResponse(saved);
     }
 
@@ -58,7 +85,11 @@ public class PatientServiceImpl implements PatientService {
     @Transactional(readOnly = true)
     public PatientResponse findById(UUID id) {
         Objects.requireNonNull(id, "Patient id is required");
+<<<<<<< HEAD
         return repository.findById(id)
+=======
+        return patientRepository.findById(id)
+>>>>>>> repository-layer
                 .map(mapper::toResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
     }
@@ -66,7 +97,11 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional(readOnly = true)
     public List<PatientSummaryResponse> findAll() {
+<<<<<<< HEAD
         return repository.findAll().stream()
+=======
+        return patientRepository.findAll().stream()
+>>>>>>> repository-layer
                 .map(mapper::toSummaryResponse)
                 .toList();
     }
@@ -77,12 +112,20 @@ public class PatientServiceImpl implements PatientService {
         Objects.requireNonNull(id, "Patient id is required");
         Objects.requireNonNull(request, "Patient update request is required");
 
+<<<<<<< HEAD
         Patient patient = repository.findById(id)
+=======
+        Patient patient = patientRepository.findById(id)
+>>>>>>> repository-layer
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
 
         mapper.patch(request, patient);
         patient.setUpdatedAt(Instant.now());
+<<<<<<< HEAD
         Patient saved = repository.save(patient);
+=======
+        Patient saved = patientRepository.save(patient);
+>>>>>>> repository-layer
         return mapper.toResponse(saved);
     }
 
@@ -95,11 +138,16 @@ public class PatientServiceImpl implements PatientService {
             throw new ConflictException("Patient status can only be changed to ACTIVE or INACTIVE");
         }
 
+<<<<<<< HEAD
         Patient patient = repository.findById(id)
+=======
+        Patient patient = patientRepository.findById(id)
+>>>>>>> repository-layer
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
 
         patient.setStatus(status);
         patient.setUpdatedAt(Instant.now());
+<<<<<<< HEAD
         Patient saved = repository.save(patient);
         return mapper.toResponse(saved);
     }
@@ -118,5 +166,11 @@ public class PatientServiceImpl implements PatientService {
             throw new IllegalArgumentException("Patient document number is required");
         }
     }
+=======
+        Patient saved = patientRepository.save(patient);
+        return mapper.toResponse(saved);
+    }
+
+>>>>>>> repository-layer
 
 }
