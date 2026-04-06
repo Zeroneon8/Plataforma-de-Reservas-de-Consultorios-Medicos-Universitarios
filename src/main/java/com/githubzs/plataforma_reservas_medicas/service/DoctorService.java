@@ -17,7 +17,7 @@ public interface DoctorService {
 
     Page<DoctorSummaryResponse> findAll(Pageable pageable);
 
-    DoctorResponse findById(UUID doctorId); 
+    DoctorSummaryResponse findById(UUID doctorId); 
 
     Page<DoctorSummaryResponse> findActiveBySpecialty(UUID specialtyId, Pageable pageable);
 
@@ -25,6 +25,6 @@ public interface DoctorService {
 
     DoctorResponse update(UUID doctorId, DoctorUpdateRequest request); 
 
-    DoctorResponse changeStatus(UUID doctorId, DoctorStatus status); 
+    DoctorSummaryResponse changeStatus(UUID doctorId, DoctorStatus status); 
 
 }

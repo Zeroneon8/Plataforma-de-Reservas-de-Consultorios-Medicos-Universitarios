@@ -59,10 +59,10 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
 
     @Override
     @Transactional(readOnly = true)
-    public AppointmentTypeResponse findById(UUID id) {
+    public AppointmentTypeSummaryResponse findById(UUID id) {
         Objects.requireNonNull(id, "Appointment type id is required");
         return repository.findById(id)
-                .map(mapper::toResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment type not found with id " + id));
     }
 

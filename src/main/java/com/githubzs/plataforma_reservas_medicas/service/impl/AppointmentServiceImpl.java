@@ -50,7 +50,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentTypeRepository appointmentTypeRepository;
     private final DoctorScheduleService doctorScheduleService;
     private final AppointmentMapper mapper;
-    private final AppointmentSummaryMapper appointmentSummaryMapper;
+    private final AppointmentSummaryMapper summaryMapper;
 
     @Override
     @Transactional
@@ -148,13 +148,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentRepository
                 .findAllWithFilters(patientId, doctorId, status, fromDateTime, toDateTime)
                 .stream()
-                .map(appointmentSummaryMapper::toSummaryResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
 
     @Override
     @Transactional
-    public AppointmentResponse confirm(UUID id) {
+    public AppointmentSummaryResponse confirm(UUID id) {
         Objects.requireNonNull(id, "Appointment id is required");
 
         Appointment appointment = appointmentRepository.findById(id)
@@ -168,7 +168,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CONFIRMED);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return mapper.toResponse(saved);
+        return summaryMapper.toSummaryResponse(saved);
     }
 
     @Override
@@ -223,7 +223,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional
-    public AppointmentResponse markNoShow(UUID id) {
+    public AppointmentSummaryResponse markNoShow(UUID id) {
         Objects.requireNonNull(id, "Appointment id is required");
 
         Appointment appointment = appointmentRepository.findById(id)
@@ -243,7 +243,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.NO_SHOW);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return mapper.toResponse(saved);
+        return summaryMapper.toSummaryResponse(saved);
     }
 
 }

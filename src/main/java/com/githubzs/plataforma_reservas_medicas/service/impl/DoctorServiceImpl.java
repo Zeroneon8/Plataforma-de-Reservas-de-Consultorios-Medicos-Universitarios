@@ -68,9 +68,9 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional(readOnly = true)
-    public DoctorResponse findById(UUID doctorId) {
+    public DoctorSummaryResponse findById(UUID doctorId) {
         return doctorRepository.findById(doctorId)
-                .map(mapper::toResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
     }
 
@@ -108,13 +108,13 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public DoctorResponse changeStatus(UUID doctorId, DoctorStatus status) {
+    public DoctorSummaryResponse changeStatus(UUID doctorId, DoctorStatus status) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
 
         doctor.setStatus(status);
         doctor.setUpdatedAt(Instant.now());
-        return mapper.toResponse(doctorRepository.save(doctor));
+        return summaryMapper.toSummaryResponse(doctorRepository.save(doctor));
     }
 
 }

@@ -19,12 +19,12 @@ public interface AppointmentService {
 
     List<AppointmentSummaryResponse> findAll(UUID patientId,UUID doctorId,AppointmentStatus status,LocalDate dateFrom,LocalDate dateTo);
 
-    AppointmentResponse confirm(UUID id);
+    AppointmentSummaryResponse confirm(UUID id);
 
     AppointmentResponse cancel(UUID id, AppointmentCancelRequest request);
 
     AppointmentResponse complete(UUID id, AppointmentCompleteRequestDto request);
 
-    AppointmentResponse markNoShow(UUID id);
+    AppointmentSummaryResponse markNoShow(UUID id);
     
 }

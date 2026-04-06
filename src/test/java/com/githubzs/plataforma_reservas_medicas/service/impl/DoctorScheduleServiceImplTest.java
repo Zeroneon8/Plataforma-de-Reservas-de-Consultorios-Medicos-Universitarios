@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.DoctorSchedule;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
@@ -31,6 +32,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleSummaryMapper;
 
 @ExtendWith(MockitoExtension.class)
 class DoctorScheduleServiceImplTest {
@@ -43,6 +45,9 @@ class DoctorScheduleServiceImplTest {
 
     @Mock
     private DoctorScheduleMapper mapper;
+
+    @Mock
+    private DoctorScheduleSummaryMapper summaryMapper;
 
     @InjectMocks
     private DoctorScheduleServiceImpl service;
@@ -124,12 +129,12 @@ class DoctorScheduleServiceImplTest {
     @Test
     void findByDoctorAndDayShouldReturnMappedSchedules() {
         DoctorSchedule schedule = DoctorSchedule.builder().id(UUID.randomUUID()).dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
-        DoctorScheduleResponse response = new DoctorScheduleResponse(schedule.getId(), null, DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
+        DoctorScheduleSummaryResponse response = new DoctorScheduleSummaryResponse(schedule.getId(), DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
 
         when(scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, DayOfWeek.MONDAY)).thenReturn(List.of(schedule));
-        when(mapper.toResponse(schedule)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(schedule)).thenReturn(response);
 
-        List<DoctorScheduleResponse> results = service.findByDoctorAndDay(doctorId, DayOfWeek.MONDAY);
+        List<DoctorScheduleSummaryResponse> results = service.findByDoctorAndDay(doctorId, DayOfWeek.MONDAY);
 
         assertEquals(1, results.size());
         assertEquals(schedule.getId(), results.get(0).id());

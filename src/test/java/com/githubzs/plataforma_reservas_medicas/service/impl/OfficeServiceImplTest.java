@@ -82,13 +82,13 @@ class OfficeServiceImplTest {
     void findByIdShouldReturnOfficeWhenExists() {
         // Given
         Office office = Office.builder().id(officeId).name("Consultorio medicina").location("Edificio A").roomNumber(101).status(OfficeStatus.AVAILABLE).createdAt(Instant.now()).build();
-        OfficeResponse response = new OfficeResponse(officeId, "Consultorio medicina", "Edificio A", "Piso 1", 101, OfficeStatus.AVAILABLE, office.getCreatedAt(), null, Collections.emptySet());
+        OfficeSummaryResponse response = new OfficeSummaryResponse(officeId, "Consultorio medicina", "Edificio A", 101, OfficeStatus.AVAILABLE, office.getCreatedAt(), null);
 
         when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
-        when(mapper.toResponse(office)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(office)).thenReturn(response);
 
         // When
-        OfficeResponse result = service.findById(officeId);
+        OfficeSummaryResponse result = service.findById(officeId);
 
         // Then
         assertNotNull(result);
@@ -135,12 +135,12 @@ class OfficeServiceImplTest {
         when(officeRepository.findByStatus(OfficeStatus.AVAILABLE, Pageable.ofSize(10))).thenReturn(page);
 
         // When
-        Page<Office> result = service.findByStatus(OfficeStatus.AVAILABLE, Pageable.ofSize(10));
+        Page<OfficeSummaryResponse> result = service.findByStatus(OfficeStatus.AVAILABLE, Pageable.ofSize(10));
 
         // Then
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
-        assertEquals(OfficeStatus.AVAILABLE, result.getContent().get(0).getStatus());
+        assertEquals(OfficeStatus.AVAILABLE, result.getContent().get(0).status());
     }
 
     @Test

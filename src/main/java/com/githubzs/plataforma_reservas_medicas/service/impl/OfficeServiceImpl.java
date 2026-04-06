@@ -71,15 +71,15 @@ public class OfficeServiceImpl implements OfficeService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Office> findByStatus(OfficeStatus status, Pageable pageable) {
-        return officeRepository.findByStatus(status, pageable);
+    public Page<OfficeSummaryResponse> findByStatus(OfficeStatus status, Pageable pageable) {
+        return officeRepository.findByStatus(status, pageable).map(summaryMapper::toSummaryResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public OfficeResponse findById(UUID officeId) {
+    public OfficeSummaryResponse findById(UUID officeId) {
         return officeRepository.findById(officeId)
-                .map(mapper::toResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Office not found with id " + officeId));
     }
 

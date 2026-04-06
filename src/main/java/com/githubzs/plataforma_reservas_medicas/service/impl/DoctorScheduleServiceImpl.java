@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.DoctorSchedule;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
@@ -20,6 +21,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleSummaryMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +32,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     private final DoctorScheduleRepository scheduleRepository;
     private final DoctorRepository doctorRepository;
     private final DoctorScheduleMapper mapper;
+    private final DoctorScheduleSummaryMapper summaryMapper;
 
 
     @Override
@@ -65,18 +68,18 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DoctorScheduleResponse> findByDoctor(UUID doctorId) {
+    public List<DoctorScheduleSummaryResponse> findByDoctor(UUID doctorId) {
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
         return scheduleRepository.findByDoctor_Id(doctorId).stream()
-                .map(mapper::toResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DoctorScheduleResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day) {
+    public List<DoctorScheduleSummaryResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day) {
         if (doctorId == null) {
             throw new IllegalArgumentException("Doctor id is required");
         }
@@ -85,7 +88,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         }
 
         return scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, day).stream()
-                .map(mapper::toResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
 

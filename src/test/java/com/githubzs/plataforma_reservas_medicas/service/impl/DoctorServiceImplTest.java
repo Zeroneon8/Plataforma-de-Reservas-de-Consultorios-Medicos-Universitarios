@@ -102,13 +102,13 @@ class DoctorServiceImplTest {
         Specialty specialty = Specialty.builder().id(specialtyId).name("Medicina General").build();
         Doctor doctor = Doctor.builder().id(doctorId).fullName("Dr. House").email("house@example.com").documentNumber("1111111").licenseNumber("111111").specialty(specialty).status(DoctorStatus.ACTIVE).createdAt(Instant.now()).build();
         SpecialtySummaryResponse specialtySummary = new SpecialtySummaryResponse(specialtyId, "Medicina General", "Medicina General");
-        DoctorResponse response = new DoctorResponse(doctorId, "Dr. House", "house@example.com", specialtySummary, DoctorStatus.ACTIVE, doctor.getCreatedAt(), null, Collections.emptySet(), Collections.emptySet());
+        DoctorSummaryResponse response = new DoctorSummaryResponse(doctorId, "Dr. House", "house@example.com", specialtySummary, DoctorStatus.ACTIVE, doctor.getCreatedAt(), null);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(mapper.toResponse(doctor)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(doctor)).thenReturn(response);
 
         // When
-        DoctorResponse result = service.findById(doctorId);
+        DoctorSummaryResponse result = service.findById(doctorId);
 
         // Then
         assertNotNull(result);
@@ -228,14 +228,14 @@ class DoctorServiceImplTest {
         Doctor doctor = Doctor.builder().id(doctorId).fullName("Dr. House").email("house@example.com").documentNumber("1111111").licenseNumber("111111").specialty(specialty).status(DoctorStatus.ACTIVE).createdAt(Instant.now()).build();
         Doctor updated = Doctor.builder().id(doctorId).fullName("Dr. House").email("house@example.com").documentNumber("1111111").licenseNumber("111111").specialty(specialty).status(DoctorStatus.INACTIVE).createdAt(doctor.getCreatedAt()).updatedAt(Instant.now()).build();
         SpecialtySummaryResponse specialtySummary = new SpecialtySummaryResponse(specialtyId, "Medicina General", "Medicina General");
-        DoctorResponse response = new DoctorResponse(doctorId, "Dr. House", "house@example.com", specialtySummary, DoctorStatus.INACTIVE, updated.getCreatedAt(), updated.getUpdatedAt(), Collections.emptySet(), Collections.emptySet());
+        DoctorSummaryResponse response = new DoctorSummaryResponse(doctorId, "Dr. House", "house@example.com", specialtySummary, DoctorStatus.INACTIVE, updated.getCreatedAt(), updated.getUpdatedAt());
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
         when(doctorRepository.save(doctor)).thenReturn(updated);
-        when(mapper.toResponse(updated)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(updated)).thenReturn(response);
 
         // When
-        DoctorResponse result = service.changeStatus(doctorId, DoctorStatus.INACTIVE);
+        DoctorSummaryResponse result = service.changeStatus(doctorId, DoctorStatus.INACTIVE);
 
         // Then
         assertNotNull(result);

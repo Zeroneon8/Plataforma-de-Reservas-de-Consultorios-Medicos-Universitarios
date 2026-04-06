@@ -95,12 +95,12 @@ class AppointmentTypeServiceImplTest {
     @Test
     void findByIdShouldReturnResponseWhenFound() {
         AppointmentType entity = AppointmentType.builder().id(typeId).name("Consulta").description("Consulta general").durationMinutes(30).build();
-        AppointmentTypeResponse response = new AppointmentTypeResponse(typeId, "Consulta", "Consulta general", 30, Set.of());
+        AppointmentTypeSummaryResponse summary = new AppointmentTypeSummaryResponse(typeId, "Consulta", "Consulta general", 30);
 
         when(repository.findById(typeId)).thenReturn(Optional.of(entity));
-        when(mapper.toResponse(entity)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(entity)).thenReturn(summary);
 
-        AppointmentTypeResponse result = service.findById(typeId);
+        AppointmentTypeSummaryResponse result = service.findById(typeId);
 
         assertNotNull(result);
         assertEquals(typeId, result.id());

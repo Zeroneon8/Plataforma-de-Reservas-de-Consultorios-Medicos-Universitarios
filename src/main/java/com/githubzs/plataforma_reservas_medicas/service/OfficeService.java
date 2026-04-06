@@ -2,7 +2,6 @@ package com.githubzs.plataforma_reservas_medicas.service;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeUpdateRequest;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 
 import java.util.List;
@@ -21,9 +20,9 @@ public interface OfficeService {
 
     OfficeResponse update(UUID id, OfficeUpdateRequest request);
     
-    Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
+    Page<OfficeSummaryResponse> findByStatus(OfficeStatus status, Pageable pageable);
 
-    OfficeResponse findById(UUID officeId); 
+    OfficeSummaryResponse findById(UUID officeId); 
 
     boolean existsByIdAndStatus(UUID id, OfficeStatus status);
 

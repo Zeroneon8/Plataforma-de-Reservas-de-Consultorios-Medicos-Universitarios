@@ -15,6 +15,6 @@ public interface AppointmentTypeService {
 
     List<AppointmentTypeSummaryResponse> findAll();
     
-    AppointmentTypeResponse findById(UUID id);
+    AppointmentTypeSummaryResponse findById(UUID id);
 
 }

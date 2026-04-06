@@ -7,14 +7,15 @@ import java.util.UUID;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
 
 public interface DoctorScheduleService {
 
     DoctorScheduleResponse create(UUID doctorId, DoctorScheduleCreateRequest request);
 
-    List<DoctorScheduleResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day); 
+    List<DoctorScheduleSummaryResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day); 
 
-    List<DoctorScheduleResponse> findByDoctor(UUID doctorId); 
+    List<DoctorScheduleSummaryResponse> findByDoctor(UUID doctorId); 
     
     boolean isWithinSchedule(UUID doctorId, LocalDateTime start, LocalDateTime end); // Regla negocio: Verifica que el rango start-end cae dentro de un bloque horario del doctor para ese día de semana. Usado por AppointmentService.
   

@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
@@ -40,6 +41,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentSummaryMapper;
 
 @ExtendWith(MockitoExtension.class)
 class AppointmentServiceImplTest {
@@ -64,6 +66,9 @@ class AppointmentServiceImplTest {
 
     @Mock
     private AppointmentMapper mapper;
+
+    @Mock
+    private AppointmentSummaryMapper summaryMapper;
 
     @InjectMocks
     private AppointmentServiceImpl service;
@@ -215,13 +220,13 @@ class AppointmentServiceImplTest {
         updated.setStatus(AppointmentStatus.CONFIRMED);
         updated.setUpdatedAt(Instant.now());
 
-        AppointmentResponse response = new AppointmentResponse(appointmentId, null, null, null, null, null, null, AppointmentStatus.CONFIRMED, null, null, null, null);
+        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CONFIRMED);
 
         when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(updated);
-        when(mapper.toResponse(updated)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(updated)).thenReturn(response);
 
-        AppointmentResponse result = service.confirm(appointmentId);
+        AppointmentSummaryResponse result = service.confirm(appointmentId);
 
         assertEquals(AppointmentStatus.CONFIRMED, result.status());
         verify(appointmentRepository).save(any(Appointment.class));
