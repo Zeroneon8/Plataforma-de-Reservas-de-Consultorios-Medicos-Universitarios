@@ -15,12 +15,16 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeRespons
 
 public interface OfficeService {
 
-    OfficeResponse create(OfficeCreateRequest request);// Regla negocio Valida unicidad de nombre/número y persiste.
-    List<OfficeSummaryResponse> findAll(); //Consulta Lista todos los consultorios.
-    OfficeResponse update(UUID id, OfficeUpdateRequest request); //Regla negocio Actualiza nombre, ubicación y estado.
-    Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
-    OfficeResponse findById(UUID officeId); //Consulta Lanza ResourceNotFoundException si no existe.
-    boolean existsByIdAndStatus(UUID id, OfficeStatus status);
+    OfficeResponse create(OfficeCreateRequest request);
 
+    List<OfficeSummaryResponse> findAll();
+
+    OfficeResponse update(UUID id, OfficeUpdateRequest request);
+    
+    Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
+
+    OfficeResponse findById(UUID officeId); 
+
+    boolean existsByIdAndStatus(UUID id, OfficeStatus status);
 
 }

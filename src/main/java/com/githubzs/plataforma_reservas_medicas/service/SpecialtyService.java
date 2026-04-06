@@ -7,8 +7,13 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyR
 import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtySummaryResponse;
 
 public interface SpecialtyService {
-    SpecialtyResponse create(SpecialtyCreateRequest request); //Regla negocio Valida nombre único y persiste.
-    List<SpecialtySummaryResponse> findAll(); //Consulta Retorna catálogo completo de especialidades.
+
+    SpecialtyResponse create(SpecialtyCreateRequest request); 
+
+    List<SpecialtySummaryResponse> findAll(); 
+
     SpecialtyResponse findByName(String name);
+
     boolean existsByName(String name);
+
 }

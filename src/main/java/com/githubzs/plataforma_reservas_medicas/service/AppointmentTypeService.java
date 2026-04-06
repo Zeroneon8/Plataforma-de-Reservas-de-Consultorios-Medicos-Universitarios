@@ -12,7 +12,9 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.Appo
 public interface AppointmentTypeService {
     
     AppointmentTypeResponse create(AppointmentTypeCreateRequest request);
+
     List<AppointmentTypeSummaryResponse> findAll();
+    
     AppointmentTypeResponse findById(UUID id);
 
 }

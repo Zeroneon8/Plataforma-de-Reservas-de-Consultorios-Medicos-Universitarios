@@ -13,12 +13,18 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 public interface DoctorService {
     
-    DoctorResponse create(DoctorCreateRequest request); //Regla negocio Valida que la especialidad exista y persiste el doctor activo.
+    DoctorResponse create(DoctorCreateRequest request);
+
     Page<DoctorSummaryResponse> findAll(Pageable pageable);
-    DoctorResponse findById(UUID doctorId); //Consulta Lista todos los doctores.
+
+    DoctorResponse findById(UUID doctorId); 
+
     Page<DoctorSummaryResponse> findActiveBySpecialty(UUID specialtyId, Pageable pageable);
-    Page<DoctorSummaryResponse> findBySpecialty(UUID specialtyId, Pageable pageable); //Consulta Delega al repository query method de doctores activos por especialidad.
-    DoctorResponse update(UUID doctorId, DoctorUpdateRequest request); //Regla negocio Actualiza datos; si cambia especialidad valida que exista.
-    DoctorResponse changeStatus(UUID doctorId, DoctorStatus status); //Transición estado Activa o inactiva el doctor.
+
+    Page<DoctorSummaryResponse> findBySpecialty(UUID specialtyId, Pageable pageable); 
+
+    DoctorResponse update(UUID doctorId, DoctorUpdateRequest request); 
+
+    DoctorResponse changeStatus(UUID doctorId, DoctorStatus status); 
 
 }

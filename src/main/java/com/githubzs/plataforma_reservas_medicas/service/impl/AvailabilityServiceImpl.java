@@ -37,7 +37,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AvailabilitySlotResponse> getAvailableSlots(
+    public List<AvailabilitySlotResponse> getAvailableSlotsForAppointmentType(
             UUID doctorId,
             LocalDate date,
             UUID appointmentTypeId) {

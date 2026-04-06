@@ -26,4 +26,5 @@ public interface AppointmentService {
     AppointmentResponse complete(UUID id, AppointmentCompleteRequestDto request);
 
     AppointmentResponse markNoShow(UUID id);
+    
 }

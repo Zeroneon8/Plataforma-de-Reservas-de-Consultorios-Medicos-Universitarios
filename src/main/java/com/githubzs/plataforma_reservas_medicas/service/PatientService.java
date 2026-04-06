@@ -11,9 +11,14 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 
 public interface PatientService {
 
-    PatientResponse create(PatientCreateRequest request); //Regla negocio Valida unicidad (documento/email si aplica), persiste y retorna DTO.
-    PatientSummaryResponse findById(UUID id);// Consulta Lanza ResourceNotFoundException si no existe.
-    List<PatientSummaryResponse> findAll(); //Consulta Lista todos los pacientes.
-    PatientResponse update(UUID id, PatientUpdateRequest request); //Regla negocio Actualiza datos permitidos; no modifica estado desde aquí.
-    PatientResponse changeStatus(UUID id, PatientStatus status); //Transición estado Activa o inactiva el paciente.
+    PatientResponse create(PatientCreateRequest request); 
+
+    PatientSummaryResponse findById(UUID id);
+
+    List<PatientSummaryResponse> findAll(); 
+
+    PatientResponse update(UUID id, PatientUpdateRequest request); 
+
+    PatientResponse changeStatus(UUID id, PatientStatus status); 
+
 }

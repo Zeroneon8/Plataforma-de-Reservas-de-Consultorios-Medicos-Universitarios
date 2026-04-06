@@ -8,8 +8,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AvailabilityDtos.Availab
 
 public interface AvailabilityService {
     
-
-    List<AvailabilitySlotResponse> getAvailableSlots(
+    List<AvailabilitySlotResponse> getAvailableSlotsForAppointmentType(
         UUID doctorId,
         LocalDate date,
         UUID appointmentTypeId

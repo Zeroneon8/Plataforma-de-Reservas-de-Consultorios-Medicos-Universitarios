@@ -14,4 +14,5 @@ public interface ReportService {
     List<DoctorProductivityResponse> getDoctorProductivity();
 
     List<NoShowPatientResponse> getNoShowPatients(LocalDate from, LocalDate to);
+    
 }

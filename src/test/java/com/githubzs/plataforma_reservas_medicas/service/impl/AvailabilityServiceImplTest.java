@@ -77,7 +77,7 @@ class AvailabilityServiceImplTest {
                 LocalDateTime.of(date, LocalTime.of(17, 0))))
                 .thenReturn(new ArrayList<>());
 
-        List<AvailabilitySlotResponse> slots = service.getAvailableSlots(doctorId, date, appointmentTypeId);
+        List<AvailabilitySlotResponse> slots = service.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId);
 
         assertFalse(slots.isEmpty());
         assertEquals(date, slots.get(0).date());
@@ -96,7 +96,7 @@ class AvailabilityServiceImplTest {
         when(doctorScheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, date.getDayOfWeek()))
                 .thenReturn(new ArrayList<>());
 
-        List<AvailabilitySlotResponse> slots = service.getAvailableSlots(doctorId, date, appointmentTypeId);
+        List<AvailabilitySlotResponse> slots = service.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId);
 
         assertEquals(0, slots.size());
     }
