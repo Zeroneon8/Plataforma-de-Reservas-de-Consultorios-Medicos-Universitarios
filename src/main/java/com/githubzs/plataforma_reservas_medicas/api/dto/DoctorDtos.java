@@ -37,7 +37,9 @@ public class DoctorDtos {
         @Size(max = 100)
         String fullName,
         @Size(max = 320)
-        String email
+        String email,
+        @NotBlank
+        UUID specialtyId
     ) implements Serializable {}
 
     public record DoctorStatusUpdateRequest(
