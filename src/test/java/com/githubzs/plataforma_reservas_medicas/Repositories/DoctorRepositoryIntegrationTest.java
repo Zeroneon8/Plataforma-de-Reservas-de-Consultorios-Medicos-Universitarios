@@ -286,6 +286,82 @@ class DoctorRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
+    @DisplayName("Doctor: Detecta si existe un doctor por número de documento")
+    void shouldExistsByDocumentNumber() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByDocumentNumber("123456");
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Doctor: No detecta la existencia de un doctor con número de documento no registrado")
+    void shouldReturnFalseWhenDocumentNumberDoesNotExist() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByDocumentNumber("999999");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("Doctor: Detecta si existe un doctor por número de licencia")
+    void shouldExistsByLicenseNumber() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByLicenseNumber("LIC-001");
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Doctor: No detecta la existencia de un doctor con número de licencia no registrado")
+    void shouldReturnFalseWhenLicenseNumberDoesNotExist() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByLicenseNumber("LIC-999");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("Doctor: Detecta si existe un doctor por email (sin importar mayúsculas)")
+    void shouldExistsByEmailIgnoreCase() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var existsLowerCase = doctorRepository.existsByEmailIgnoreCase("drhouse@doctor.com");
+        var existsUpperCase = doctorRepository.existsByEmailIgnoreCase("DRHOUSE@DOCTOR.COM");
+        var existsMixedCase = doctorRepository.existsByEmailIgnoreCase("DrHouse@Doctor.Com");
+
+        // Then
+        assertThat(existsLowerCase).isTrue();
+        assertThat(existsUpperCase).isTrue();
+        assertThat(existsMixedCase).isTrue();
+    }
+
+    @Test
+    @DisplayName("Doctor: No detecta la existencia de un doctor con email no registrado")
+    void shouldReturnFalseWhenEmailDoesNotExist() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exists = doctorRepository.existsByEmailIgnoreCase("unknown@doctor.com");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
     @DisplayName("Doctor: rankea doctores por cantidad de citas completadas en orden descendente")
     void shouldRankDoctorsByCompletedAppointments() {
         // Given

@@ -456,4 +456,56 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         assertThat(result).isEmpty();
     }
 
+    @Test
+    @DisplayName("Office: Detecta si existe un consultorio por su nombre ignorando mayúsculas y minúsculas")
+    void shouldExistByNameIgnoreCase() {
+        // Given - ya creado en el setUp() con nombre "Consultorio de medicina general"
+
+        // When
+        var existLowerCase = officeRepository.existsByNameIgnoreCase("consultorio de medicina general");
+        var existUpperCase = officeRepository.existsByNameIgnoreCase("CONSULTORIO DE MEDICINA GENERAL");
+        var existMixedCase = officeRepository.existsByNameIgnoreCase("Consultorio De Medicina General");
+
+        // Then
+        assertThat(existLowerCase).isTrue();
+        assertThat(existUpperCase).isTrue();
+        assertThat(existMixedCase).isTrue();
+    }
+
+    @Test
+    @DisplayName("Office: No detecta la existencia de un consultorio por nombre cuando no coincide")
+    void shouldReturnFalseWhenNameDoesNotExistForExistsByNameIgnoreCase() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exist = officeRepository.existsByNameIgnoreCase("Consultorio inexistente");
+
+        // Then
+        assertThat(exist).isFalse();
+    }
+
+    @Test
+    @DisplayName("Office: Detecta si existe un consultorio por su número de sala")
+    void shouldExistByRoomNumber() {
+        // Given - ya creado en el setUp() con roomNumber = 101
+
+        // When
+        var exist = officeRepository.existsByRoomNumber("101");
+
+        // Then
+        assertThat(exist).isTrue();
+    }
+
+    @Test
+    @DisplayName("Office: No detecta la existencia de un consultorio por número de sala cuando no coincide")
+    void shouldReturnFalseWhenRoomNumberDoesNotExistForExistsByRoomNumber() {
+        // Given - ya creado en el setUp()
+
+        // When
+        var exist = officeRepository.existsByRoomNumber("999");
+
+        // Then
+        assertThat(exist).isFalse();
+    }
+
 }

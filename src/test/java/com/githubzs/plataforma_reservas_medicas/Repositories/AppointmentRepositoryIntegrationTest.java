@@ -578,4 +578,279 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         assertThat(found).isEmpty();
     }
 
+    @Test
+    @DisplayName("Appointment: Encuentra citas filtrando por todos los parámetros especificados")
+    void shouldFindAllWithFiltersWhenAllParametersMatch() {
+        // Given
+        var patient2 = patientRepository.save(
+            Patient.builder()
+                .fullName("Jane Doe")
+                .documentNumber("987654")
+                .phoneNumber("3019283728")
+                .email("janedoe@gmail.com")
+                .createdAt(Instant.now())
+                .status(PatientStatus.ACTIVE)
+                .build()
+        );
+
+        var doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr. Strange")
+                .documentNumber("666666")
+                .licenseNumber("LIC-002")
+                .email("drstrange@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        
+        // Citas que no deben aparecer
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.SCHEDULED)); // Otro estado
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient2)
+                .doctor(doctor)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime)
+                .endAt(baseDateTime.plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
+        ); // Otro paciente
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient)
+                .doctor(doctor2)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime)
+                .endAt(baseDateTime.plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
+        ); // Otro doctor
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(5), AppointmentStatus.CONFIRMED)); // Fuera del rango
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            patient.getId(),
+            doctor.getId(),
+            AppointmentStatus.CONFIRMED,
+            baseDateTime.minusHours(1),
+            baseDateTime.plusHours(1)
+        );
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Appointment::getId).containsExactly(appointment1.getId());
+        assertThat(found).extracting(Appointment::getPatient).extracting(Patient::getId).containsOnly(patient.getId());
+        assertThat(found).extracting(Appointment::getDoctor).extracting(Doctor::getId).containsOnly(doctor.getId());
+        assertThat(found).extracting(Appointment::getStatus).containsOnly(AppointmentStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas filtrando solo por paciente cuando los otros filtros son null")
+    void shouldFindAllWithFiltersWhenOnlyPatientIdIsSpecified() {
+        // Given
+        var patient2 = patientRepository.save(
+            Patient.builder()
+                .fullName("Jane Doe")
+                .documentNumber("987654")
+                .phoneNumber("3019283728")
+                .email("janedoe@gmail.com")
+                .createdAt(Instant.now())
+                .status(PatientStatus.ACTIVE)
+                .build()
+        );
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+        
+        // Cita de otro paciente - no debe aparecer
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient2)
+                .doctor(doctor)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(2))
+                .endAt(baseDateTime.plusHours(2).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            patient.getId(),
+            null,
+            null,
+            null,
+            null
+        );
+
+        // Then
+        assertThat(found).hasSize(2);
+        assertThat(found).extracting(Appointment::getId).containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
+        assertThat(found).extracting(Appointment::getPatient).extracting(Patient::getId).containsOnly(patient.getId());
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas filtrando solo por doctor cuando los otros filtros son null")
+    void shouldFindAllWithFiltersWhenOnlyDoctorIdIsSpecified() {
+        // Given
+        var doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr. Strange")
+                .documentNumber("666666")
+                .licenseNumber("LIC-002")
+                .email("drstrange@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.SCHEDULED));
+        
+        // Cita de otro doctor - no debe aparecer
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient)
+                .doctor(doctor2)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(2))
+                .endAt(baseDateTime.plusHours(2).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.CONFIRMED)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            null,
+            doctor.getId(),
+            null,
+            null,
+            null
+        );
+
+        // Then
+        assertThat(found).hasSize(2);
+        assertThat(found).extracting(Appointment::getId).containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
+        assertThat(found).extracting(Appointment::getDoctor).extracting(Doctor::getId).containsOnly(doctor.getId());
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas filtrando solo por estado cuando los otros filtros son null")
+    void shouldFindAllWithFiltersWhenOnlyStatusIsSpecified() {
+        // Given
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.SCHEDULED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(2), AppointmentStatus.SCHEDULED));
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            null,
+            null,
+            AppointmentStatus.CONFIRMED,
+            null,
+            null
+        );
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Appointment::getId).containsExactly(appointment1.getId());
+        assertThat(found).extracting(Appointment::getStatus).containsOnly(AppointmentStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra citas filtrando solo por rango de fechas cuando los otros filtros son null")
+    void shouldFindAllWithFiltersWhenOnlyDateRangeIsSpecified() {
+        // Given
+        var from = baseDateTime.minusHours(1);
+        var to = baseDateTime.plusHours(1);
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        
+        // Citas fuera del rango - no deben aparecer
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(1), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            null,
+            null,
+            null,
+            from,
+            to
+        );
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Appointment::getId).containsExactly(appointment1.getId());
+        assertThat(found).extracting(Appointment::getStartAt).allMatch(start -> !start.isBefore(from) && !start.isAfter(to));
+    }
+
+    @Test
+    @DisplayName("Appointment: Encuentra todas las citas cuando todos los filtros son null")
+    void shouldFindAllWithFiltersWhenAllFiltersAreNull() {
+        // Given
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.SCHEDULED));
+        var appointment3 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CANCELLED));
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(null, null, null, null, null);
+
+        // Then
+        assertThat(found).hasSize(3);
+        assertThat(found).extracting(Appointment::getId).containsExactlyInAnyOrder(
+            appointment1.getId(), appointment2.getId(), appointment3.getId()
+        );
+    }
+
+    @Test
+    @DisplayName("Appointment: Devuelve lista vacía cuando ninguna cita cumple los filtros")
+    void shouldReturnEmptyWhenNoAppointmentsMatchFilters() {
+        // Given
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(
+            patient.getId(),
+            doctor.getId(),
+            AppointmentStatus.SCHEDULED, // Estado que no existe en las citas del doctor y paciente
+            baseDateTime.minusDays(5),
+            baseDateTime.minusDays(4)
+        );
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Appointment: Filtra correctamente cuando el rango de fechas excluye el límite superior")
+    void shouldExcludeUpperLimitForDateRangeFilter() {
+        // Given
+        var from = baseDateTime;
+        var to = baseDateTime.plusHours(1);
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(from, AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(to, AppointmentStatus.CONFIRMED)); // Exactly at the upper limit
+
+        // When
+        var found = appointmentRepository.findAllWithFilters(null, null, null, from, to);
+
+        // Then
+        assertThat(found).hasSize(1);
+        assertThat(found).extracting(Appointment::getId).containsExactly(appointment1.getId());
+    }
+
 }

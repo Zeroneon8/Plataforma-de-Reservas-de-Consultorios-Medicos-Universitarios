@@ -81,4 +81,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         @Param("to") LocalDateTime to
     );
 
+    @Query("""
+    SELECT a FROM Appointment a
+    WHERE (:patientId IS NULL OR a.patient.id = :patientId)
+    AND (:doctorId IS NULL OR a.doctor.id = :doctorId)
+    AND (:status IS NULL OR a.status = :status)
+    AND (:dateFrom IS NULL OR a.startAt >= :dateFrom)
+    AND (:dateTo IS NULL OR a.startAt <= :dateTo)
+    ORDER BY a.startAt DESC
+    """)
+    List<Appointment> findAllWithFilters(
+        @Param("patientId") UUID patientId,
+        @Param("doctorId") UUID doctorId,
+        @Param("status") AppointmentStatus status,
+        @Param("dateFrom") LocalDateTime dateFrom,
+        @Param("dateTo") LocalDateTime dateTo
+    );
+
 }
