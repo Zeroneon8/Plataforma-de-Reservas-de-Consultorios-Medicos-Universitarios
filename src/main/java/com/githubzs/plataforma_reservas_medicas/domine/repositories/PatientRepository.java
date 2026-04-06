@@ -17,6 +17,12 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
 
     boolean existsByIdAndStatus(UUID id, PatientStatus status);
 
+    boolean existsByDocumentNumber(String documentNumber);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByStudentCodeIgnoreCase(String studentCode);
+
     Optional<Patient> findByDocumentNumber(String documentNumber);
 
     // Contar cantidad de inasistencias (NO_SHOW) de un paciente en un rango de fechas

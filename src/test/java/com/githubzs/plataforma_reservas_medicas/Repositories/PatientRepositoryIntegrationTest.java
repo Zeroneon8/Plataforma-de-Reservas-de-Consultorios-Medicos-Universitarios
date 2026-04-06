@@ -92,6 +92,7 @@ class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
             .documentNumber(documentNumber)
             .phoneNumber("3241234567")
             .email(email)
+            .studentCode("2024114220")
             .createdAt(Instant.now())
             .status(PatientStatus.ACTIVE)
             .build();
@@ -360,6 +361,88 @@ class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
 
         // Then
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Patient: Detecta si existe un paciente con un número de documento dado")
+    void shouldExistByDocumentNumber() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByDocumentNumber("123456");
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente con un número de documento no registrado")
+    void shouldReturnFalseWhenDocumentNumberNotFoundForExistsByDocumentNumber() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByDocumentNumber("999999");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+
+
+    @Test
+    @DisplayName("Patient: Detecta si existe un paciente con un email dado (case insensitive)")
+    void shouldExistByEmailIgnoreCase() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByEmailIgnoreCase("JOHNDOE@GMAIL.COM");
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente con un email no registrado")
+    void shouldReturnFalseWhenEmailNotFoundForExistsByEmailIgnoreCase() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByEmailIgnoreCase("notfound@gmail.com");
+
+        // Then
+        assertThat(exists).isFalse();
+    }
+
+  
+
+    @Test
+    @DisplayName("Patient: Detecta si existe un paciente con un código de estudiante dado (case insensitive)")
+    void shouldExistByStudentCodeIgnoreCase() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByStudentCodeIgnoreCase( patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com")).getStudentCode());
+
+        // Then
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Patient: No detecta la existencia de un paciente con un código de estudiante no registrado")
+    void shouldReturnFalseWhenStudentCodeNotFoundForExistsByStudentCodeIgnoreCase() {
+        // Given
+        patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
+
+        // When
+        var exists = patientRepository.existsByStudentCodeIgnoreCase("STUDENT-9999");
+
+        // Then
+        assertThat(exists).isFalse();
     }
 
 }
