@@ -8,11 +8,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Patient;
 
-@Mapper(componentModel = "spring", uses = { AppointmentMapper.class })
+@Mapper(componentModel = "spring", uses = { AppointmentSummaryMapper.class })
 public interface PatientMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -33,7 +32,5 @@ public interface PatientMapper {
     void patch(PatientUpdateRequest request, @MappingTarget Patient patient);
 
     PatientResponse toResponse(Patient patient);
-
-    PatientSummaryResponse toSummaryResponse(Patient patient);
 
 }

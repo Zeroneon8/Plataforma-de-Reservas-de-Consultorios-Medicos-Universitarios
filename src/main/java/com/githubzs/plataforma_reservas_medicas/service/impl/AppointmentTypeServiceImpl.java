@@ -16,6 +16,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.AppointmentTypeService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentTypeMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentTypeSummaryMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
 
     private final AppointmentTypeRepository repository;
     private final AppointmentTypeMapper mapper;
+    private final AppointmentTypeSummaryMapper summaryMapper;
 
 
     @Override
@@ -46,7 +48,7 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
     @Transactional(readOnly = true)
     public List<AppointmentTypeSummaryResponse> findAll() {
         return repository.findAll().stream()
-                .map(mapper::toSummaryResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
 

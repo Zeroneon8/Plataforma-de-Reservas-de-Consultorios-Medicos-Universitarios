@@ -25,6 +25,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentTypeRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentTypeSummaryMapper;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentTypeMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +36,9 @@ class AppointmentTypeServiceImplTest {
 
     @Mock
     private AppointmentTypeMapper mapper;
+
+    @Mock
+    private AppointmentTypeSummaryMapper summaryMapper;
 
     @InjectMocks
     private AppointmentTypeServiceImpl service;
@@ -80,7 +84,7 @@ class AppointmentTypeServiceImplTest {
         AppointmentTypeSummaryResponse summary = new AppointmentTypeSummaryResponse(typeId, "Consulta", "Consulta general", 30);
 
         when(repository.findAll()).thenReturn(List.of(entity));
-        when(mapper.toSummaryResponse(entity)).thenReturn(summary);
+        when(summaryMapper.toSummaryResponse(entity)).thenReturn(summary);
 
         List<AppointmentTypeSummaryResponse> result = service.findAll();
 
