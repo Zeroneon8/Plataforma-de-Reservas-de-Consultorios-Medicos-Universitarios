@@ -1,7 +1,9 @@
 package com.githubzs.plataforma_reservas_medicas.service.impl;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -133,8 +135,19 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponse> findAll() {
-        return appointmentRepository.findAll().stream()
+    public List<AppointmentSummaryResponse> findAll(
+            UUID patientId,
+            UUID doctorId,
+            AppointmentStatus status,
+            LocalDate dateFrom,
+            LocalDate dateTo) {
+
+        LocalDateTime fromDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
+        LocalDateTime toDateTime   = dateTo   != null ? dateTo.atTime(LocalTime.MAX) : null;
+
+        return appointmentRepository
+                .findAllWithFilters(patientId, doctorId, status, fromDateTime, toDateTime)
+                .stream()
                 .map(appointmentSummaryMapper::toSummaryResponse)
                 .toList();
     }
