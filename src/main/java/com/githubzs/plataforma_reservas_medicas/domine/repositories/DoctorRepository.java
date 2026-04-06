@@ -24,6 +24,12 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     boolean existsByIdAndStatus(UUID id, DoctorStatus status);
 
+     boolean existsByDocumentNumber(String documentNumber); 
+
+     boolean existsByLicenseNumber(String licenseNumber); 
+     
+     boolean existsByEmailIgnoreCase(String email); 
+
     // Obtener ranking de profesionales por cantidad de citas completadas (Ordenamos y no ponemos el ranking directamente porque JPQL no soporta funciones de ventana)
     @Query("""
      SELECT new com.githubzs.plataforma_reservas_medicas.domine.dto.DoctorRankingStatsDto(
