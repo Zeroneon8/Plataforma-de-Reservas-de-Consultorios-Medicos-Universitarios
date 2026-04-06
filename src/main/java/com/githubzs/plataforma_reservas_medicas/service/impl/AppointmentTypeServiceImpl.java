@@ -34,12 +34,17 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
     public AppointmentTypeResponse create(AppointmentTypeCreateRequest request) {
         Objects.requireNonNull(request, "Appointment type request is required");
         String name = request.name();
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Appointment type name is required");
+        }
 
-        if (repository.existsByNameIgnoreCase(name.trim())) {
+        String normalizedName = name.trim();
+        if (repository.existsByNameIgnoreCase(normalizedName)) {
             throw new ConflictException("An appointment type with the same name already exists");
         }
 
         AppointmentType appointmentType = mapper.toEntity(request);
+        appointmentType.setName(normalizedName);
         AppointmentType saved = repository.save(appointmentType);
         return mapper.toResponse(saved);
     }

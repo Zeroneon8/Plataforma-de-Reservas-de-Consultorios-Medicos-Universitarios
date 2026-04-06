@@ -92,8 +92,18 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public boolean isWithinSchedule(UUID doctorId, LocalDateTime start, LocalDateTime end) {
-        if (!start.isBefore(end)) return false;
-        if (!start.toLocalDate().equals(end.toLocalDate())) return false;
+        if (doctorId == null) {
+            throw new IllegalArgumentException("Doctor id is required");
+        }
+        if (start == null || end == null) {
+            return false;
+        }
+        if (!start.isBefore(end)) {
+            return false;
+        }
+        if (!start.toLocalDate().equals(end.toLocalDate())) {
+            return false;
+        }
 
         LocalTime startTime = start.toLocalTime();
         LocalTime endTime   = end.toLocalTime();
