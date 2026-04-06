@@ -89,8 +89,8 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponse changeStatus(UUID id, PatientStatus status) {
         Objects.requireNonNull(id, "Patient id is required");
         Objects.requireNonNull(status, "Patient status is required");
-        if (status != PatientStatus.ACTIVE && status != PatientStatus.INACTIVE) {
-            throw new ConflictException("Patient status can only be changed to ACTIVE or INACTIVE");
+        if (status != PatientStatus.ACTIVE && status != PatientStatus.INACTIVE && status != PatientStatus.SUSPENDED) {
+            throw new ConflictException("Patient status can only be changed to ACTIVE, INACTIVE or SUSPENDED");
         }
 
         Patient patient = patientRepository.findById(id)
