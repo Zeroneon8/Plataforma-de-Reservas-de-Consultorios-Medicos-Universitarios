@@ -134,7 +134,7 @@ class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryIT {
         // Then
         assertThat(schedules).isEmpty();
     }
-
+    
     @Test
     @DisplayName("Doctor Schedule: Encuentra todos los horarios de un doctor")
     void shouldFindByDoctorId() {
@@ -211,5 +211,4 @@ class DoctorScheduleRepositoryIntegrationTest extends AbstractRepositoryIT {
         // Then
         assertThat(schedules).isEmpty();
     }
-    
 }
