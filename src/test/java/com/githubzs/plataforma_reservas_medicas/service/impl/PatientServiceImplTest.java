@@ -28,6 +28,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepos
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientSummaryMapper;
 
 @ExtendWith(MockitoExtension.class)
 class PatientServiceImplTest {
@@ -37,6 +38,9 @@ class PatientServiceImplTest {
 
     @Mock
     private PatientMapper mapper;
+
+    @Mock
+    private PatientSummaryMapper summaryMapper;
 
     @InjectMocks
     private PatientServiceImpl service;
@@ -80,12 +84,12 @@ class PatientServiceImplTest {
     @Test
     void findByIdShouldReturnPatientWhenExists() {
         Patient patient = Patient.builder().id(patientId).fullName("Juan Perez").email("juan@example.com").phoneNumber("1234567890").documentNumber("D12345").status(PatientStatus.ACTIVE).createdAt(Instant.now()).build();
-        PatientResponse response = new PatientResponse(patientId, "Juan Perez", "juan@example.com", "1234567890", PatientStatus.ACTIVE, patient.getCreatedAt(), null, null);
+        PatientSummaryResponse summary = new PatientSummaryResponse(patientId, "Juan Perez", "juan@example.com", "1234567890", PatientStatus.ACTIVE, patient.getCreatedAt(), null);
 
         when(repository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(mapper.toResponse(patient)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(patient)).thenReturn(summary);
 
-        PatientResponse result = service.findById(patientId);
+        PatientSummaryResponse result = service.findById(patientId);
 
         assertNotNull(result);
         assertEquals(patientId, result.id());
@@ -104,7 +108,7 @@ class PatientServiceImplTest {
         PatientSummaryResponse summary = new PatientSummaryResponse(patientId, "Juan Perez", "juan@example.com", "1234567890", PatientStatus.ACTIVE, patient.getCreatedAt(), null);
 
         when(repository.findAll()).thenReturn(List.of(patient));
-        when(mapper.toSummaryResponse(patient)).thenReturn(summary);
+        when(summaryMapper.toSummaryResponse(patient)).thenReturn(summary);
 
         List<PatientSummaryResponse> results = service.findAll();
 

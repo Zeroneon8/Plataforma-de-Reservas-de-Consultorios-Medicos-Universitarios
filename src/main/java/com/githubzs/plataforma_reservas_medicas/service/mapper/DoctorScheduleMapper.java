@@ -5,7 +5,6 @@ import org.mapstruct.Mapping;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.DoctorSchedule;
 
 @Mapper(componentModel = "spring")
@@ -26,5 +25,4 @@ public interface DoctorScheduleMapper {
     @Mapping(target = "doctor.specialty.description", source = "doctor.specialty.description")
     DoctorScheduleResponse toResponse(DoctorSchedule schedule);
 
-    DoctorScheduleSummaryResponse toSummaryResponse(DoctorSchedule schedule);
 }

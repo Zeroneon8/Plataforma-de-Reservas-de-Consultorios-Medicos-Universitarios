@@ -8,11 +8,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 
-@Mapper(componentModel = "spring", uses = { SpecialtyMapper.class, DoctorScheduleMapper.class, AppointmentMapper.class })
+@Mapper(componentModel = "spring", uses = { SpecialtySummaryMapper.class, DoctorScheduleSummaryMapper.class, AppointmentSummaryMapper.class })
 public interface DoctorMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -35,9 +34,6 @@ public interface DoctorMapper {
     @Mapping(target = "schedules", ignore = true)
     @Mapping(target = "specialty", ignore = true)
     void patch(DoctorUpdateRequest changes, @MappingTarget Doctor target);
-
-    @Mapping(target = "specialty", source = "specialty")
-    DoctorSummaryResponse toSummaryResponse(Doctor doctor);
 
     @Mapping(target = "specialty",     source = "specialty")
     @Mapping(target = "schedules",     source = "schedules")

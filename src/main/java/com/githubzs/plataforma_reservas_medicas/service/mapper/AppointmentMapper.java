@@ -8,64 +8,58 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.Appointm
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequestDto;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
-import com.githubzs.plataforma_reservas_medicas.domine.entities.Patient;
 
 
 @Mapper(componentModel = "spring", uses = { 
-    PatientMapper.class, 
-    DoctorMapper.class, 
-    OfficeMapper.class, 
-    AppointmentTypeMapper.class 
+    PatientSummaryMapper.class, 
+    DoctorSummaryMapper.class, 
+    OfficeSummaryMapper.class, 
+    AppointmentTypeSummaryMapper.class 
 })
 public interface AppointmentMapper {
 
-    @Mapping(target = "id",        ignore = true)
-    @Mapping(target = "status",    ignore = true)
-    @Mapping(target = "endAt",     ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // Se setea en el servicio
+    @Mapping(target = "endAt", ignore = true) // Se setea en el servicio
     @Mapping(target = "cancelReason", ignore = true)
     @Mapping(target = "observations", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "patient",         source = "patient")
-    @Mapping(target = "doctor",          source = "doctor")
-    @Mapping(target = "office",          source = "office")
-    @Mapping(target = "appointmentType", source = "appointmentType")
-    Appointment toEntity(AppointmentCreateRequest request, Patient patient,Doctor doctor, Office office,AppointmentType appointmentType);
+    @Mapping(target = "createdAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "patient", ignore = true) // Se setea en el servicio
+    @Mapping(target = "doctor", ignore = true) // Se setea en el servicio
+    @Mapping(target = "office", ignore = true) // Se setea en el servicio
+    @Mapping(target = "appointmentType", ignore = true) // Se setea en el servicio
+    Appointment toEntity(AppointmentCreateRequest request);
 
     // — Cancelar cita: actualiza campos sobre la entidad existente —
-    @Mapping(target = "id",              ignore = true)
-    @Mapping(target = "status",          ignore = true) // el servicio asigna CANCELLED
-    @Mapping(target = "startAt",         ignore = true)
-    @Mapping(target = "endAt",           ignore = true)
-    @Mapping(target = "observations",    ignore = true)
-    @Mapping(target = "createdAt",       ignore = true)
-    @Mapping(target = "updatedAt",       ignore = true) // el servicio lo asigna
-    @Mapping(target = "patient",         ignore = true)
-    @Mapping(target = "doctor",          ignore = true)
-    @Mapping(target = "office",          ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // el servicio asigna CANCELLED
+    @Mapping(target = "startAt", ignore = true)
+    @Mapping(target = "endAt", ignore = true)
+    @Mapping(target = "observations", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "patient", ignore = true)
+    @Mapping(target = "doctor", ignore = true)
+    @Mapping(target = "office", ignore = true)
     @Mapping(target = "appointmentType", ignore = true)
     void applyCancelRequest(AppointmentCancelRequest request, @MappingTarget Appointment appointment);
 
     // — Completar cita: actualiza campos sobre la entidad existente —
-    @Mapping(target = "id",              ignore = true)
-    @Mapping(target = "status",          ignore = true) // el servicio asigna COMPLETED
-    @Mapping(target = "startAt",         ignore = true)
-    @Mapping(target = "endAt",           ignore = true)
-    @Mapping(target = "cancelReason",    ignore = true)
-    @Mapping(target = "createdAt",       ignore = true)
-    @Mapping(target = "updatedAt",       ignore = true) // el servicio lo asigna
-    @Mapping(target = "patient",         ignore = true)
-    @Mapping(target = "doctor",          ignore = true)
-    @Mapping(target = "office",          ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true) // el servicio asigna COMPLETED
+    @Mapping(target = "startAt", ignore = true)
+    @Mapping(target = "endAt", ignore = true)
+    @Mapping(target = "cancelReason", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true) // Se setea en el servicio
+    @Mapping(target = "patient", ignore = true)
+    @Mapping(target = "doctor", ignore = true)
+    @Mapping(target = "office", ignore = true)
     @Mapping(target = "appointmentType", ignore = true)
     void applyCompleteRequest(AppointmentCompleteRequestDto request, @MappingTarget Appointment appointment);
 
     AppointmentResponse toResponse(Appointment appointment);
 
-    AppointmentSummaryResponse toSummaryResponse(Appointment appointment);
 }

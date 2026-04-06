@@ -8,11 +8,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
 
-@Mapper(componentModel = "spring", uses = { AppointmentMapper.class })
+@Mapper(componentModel = "spring", uses = { AppointmentSummaryMapper.class })
 public interface OfficeMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -31,7 +30,5 @@ public interface OfficeMapper {
     void patch(OfficeUpdateRequest request, @MappingTarget Office office);
 
     OfficeResponse toResponse(Office office);
-
-    OfficeSummaryResponse toSummaryResponse(Office office);
     
 }

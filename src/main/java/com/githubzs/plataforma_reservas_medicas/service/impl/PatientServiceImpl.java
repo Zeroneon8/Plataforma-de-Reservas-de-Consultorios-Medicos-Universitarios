@@ -19,6 +19,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.PatientService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientMapper;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientSummaryMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,7 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final PatientMapper mapper;
+    private final PatientSummaryMapper summaryMapper;
 
 
     @Override
@@ -57,7 +59,7 @@ public class PatientServiceImpl implements PatientService {
     public PatientSummaryResponse findById(UUID id) {
         Objects.requireNonNull(id, "Patient id is required");
         return patientRepository.findById(id)
-                .map(mapper::toSummaryResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
     }
 
@@ -65,7 +67,7 @@ public class PatientServiceImpl implements PatientService {
     @Transactional(readOnly = true)
     public List<PatientSummaryResponse> findAll() {
         return patientRepository.findAll().stream()
-                .map(mapper::toSummaryResponse)
+                .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
 
