@@ -426,7 +426,7 @@ class PatientRepositoryIntegrationTest extends AbstractRepositoryIT {
         patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com"));
 
         // When
-        var exists = patientRepository.existsByStudentCodeIgnoreCase( patientRepository.save(buildDefaultPatient("John Doe", "123456", "johndoe@gmail.com")).getStudentCode());
+        var exists = patientRepository.existsByStudentCodeIgnoreCase("2024114220");
 
         // Then
         assertThat(exists).isTrue();
