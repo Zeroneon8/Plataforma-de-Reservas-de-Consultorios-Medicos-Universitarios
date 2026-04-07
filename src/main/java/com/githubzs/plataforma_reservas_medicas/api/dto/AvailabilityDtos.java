@@ -13,5 +13,4 @@ public class AvailabilityDtos {
         LocalTime slotEnd
     ) implements Serializable {}
 
-
 }

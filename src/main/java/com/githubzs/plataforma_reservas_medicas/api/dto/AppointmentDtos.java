@@ -69,4 +69,14 @@ public class AppointmentDtos {
         Instant updatedAt
     ) implements Serializable {}
 
+    public record AppointmentSearchRequest(
+        UUID patientId,
+        UUID doctorId,
+        UUID officeId,
+        UUID specialtyId,
+        LocalDateTime startAt,
+        LocalDateTime endAt,
+        AppointmentStatus status
+    ) implements Serializable {}
+
 }

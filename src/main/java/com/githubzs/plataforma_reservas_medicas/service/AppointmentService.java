@@ -9,6 +9,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.Appointm
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequestDto;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 
 public interface AppointmentService {
@@ -17,7 +18,7 @@ public interface AppointmentService {
 
     AppointmentResponse findById(UUID id);
 
-    Page<AppointmentSummaryResponse> findAll(Pageable pageable);
+    Page<AppointmentSummaryResponse> findAll(AppointmentSearchRequest request, Pageable pageable);
 
     AppointmentSummaryResponse confirm(UUID id);
 

@@ -7,12 +7,14 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequestDto;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
@@ -88,11 +90,40 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponse> findAll(Pageable pageable) {
-        Pageable newPageable = pageable != null ? pageable : Pageable.unpaged();
+    public Page<AppointmentSummaryResponse> findAll(AppointmentSearchRequest request, Pageable pageable) {
+        var requestCopy = request == null ? new AppointmentSearchRequest(null, null, null, null, null, null, null) : request;
+        
+        if (requestCopy.startAt() != null && requestCopy.endAt() != null && requestCopy.startAt().isAfter(requestCopy.endAt())) {
+            throw new ConflictException("Start date cannot be after end date");
+        }
 
-        return appointmentRepository.findAll(newPageable)
-                .map(summaryMapper::toSummaryResponse);
+        Pageable finalPageable = pageable == null ? Pageable.ofSize(10) : pageable;
+
+        Specification<Appointment> spec = (root, query, cb) -> cb.conjunction();
+
+        if (requestCopy.patientId() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("patient").get("id"), requestCopy.patientId()));
+        }
+        if (requestCopy.doctorId() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("doctor").get("id"), requestCopy.doctorId()));
+        }
+        if (requestCopy.officeId() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("office").get("id"), requestCopy.officeId()));
+        }
+        if (requestCopy.specialtyId() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("doctor").get("specialty").get("id"), requestCopy.specialtyId()));
+        }
+        if (requestCopy.status() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), requestCopy.status()));
+        }
+        if (requestCopy.startAt() != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("startAt"), requestCopy.startAt()));
+        }
+        if (requestCopy.endAt() != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThan(root.get("startAt"), requestCopy.endAt()));
+        }
+
+        return appointmentRepository.findAll(spec, finalPageable).map(summaryMapper::toSummaryResponse);
     }
 
     @Override
