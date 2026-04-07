@@ -239,19 +239,12 @@ Se implementan excepciones específicas (`ConflictException` para conflictos de 
 
 Todas las entidades usan `UUID` como clave primaria para evitar colisiones en entornos distribuidos y mejorar la seguridad al no exponer secuencias predecibles.
 
----
+### 9.9 DTOs por niveles para evitar dependencia circular
 
-## 10. Contribución
-
-1. Clona el repositorio
-2. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-3. Implementa los cambios siguiendo la arquitectura por capas
-4. Agrega pruebas unitarias e integración para nueva funcionalidad
-5. Ejecuta `./mvnw test` para verificar que todo pasa
-6. Crea un Pull Request con descripción detallada
+Cada entidad del dominio cuenta con tres tipos de DTO diferenciados: `CreateRequest` para la entrada de datos, `Response` completo para la respuesta detallada de su propio módulo, y `SummaryResponse` para ser embebido dentro de las respuestas de otras entidades. Por ejemplo, `AppointmentResponse` no contiene un `PatientResponse` completo sino un `PatientSummaryResponse` con solo los campos esenciales. Esto elimina la dependencia circular entre mappers y evita que el grafo de objetos se serialice de forma recursiva o infinita.
 
 ---
 
-## 11. Licencia
+## 10. Licencia
 
 Proyecto educativo - No aplica licencia comercial.
