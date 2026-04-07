@@ -1,6 +1,7 @@
 package com.githubzs.plataforma_reservas_medicas.service.impl;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +30,22 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     @Override
     @Transactional
     public SpecialtyResponse create(SpecialtyCreateRequest request) {
-        if (specialtyRepository.existsByName(request.name())) {
+        Objects.requireNonNull(request, "Specialty create request is required");
+
+        // Normalizamos el nombre y la descripción (si existe) de la especialidad
+        String normalizedName = request.name().trim();
+        String normalizedDescription = null;
+        if (request.description() != null) {
+            normalizedDescription = request.description().trim();
+        }
+
+        if (specialtyRepository.existsByName(normalizedName)) {
             throw new ConflictException("A specialty with the same name already exists");
         }
 
         Specialty specialty = mapper.toEntity(request);
+        specialty.setName(normalizedName);
+        specialty.setDescription(normalizedDescription);
         Specialty saved = specialtyRepository.save(specialty);
         return mapper.toResponse(saved);
     }
@@ -49,15 +61,19 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     @Override
     @Transactional(readOnly = true)
     public SpecialtyResponse findByName(String name) {
-        return specialtyRepository.findByName(name)
+        Objects.requireNonNull(name, "Specialty name is required");
+        String normalizedName = name.trim();
+        return specialtyRepository.findByName(normalizedName)
                 .map(mapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Specialty not found with name " + name));
+                .orElseThrow(() -> new ResourceNotFoundException("Specialty not found with name " + normalizedName));
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
-        return specialtyRepository.existsByName(name);
+        Objects.requireNonNull(name, "Specialty name is required");
+        String normalizedName = name.trim();
+        return specialtyRepository.existsByName(normalizedName);
     }
 
 }
