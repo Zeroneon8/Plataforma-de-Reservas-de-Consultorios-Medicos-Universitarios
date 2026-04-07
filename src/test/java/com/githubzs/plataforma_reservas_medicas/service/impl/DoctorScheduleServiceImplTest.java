@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,23 +34,17 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
-import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleMapper;
-import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorScheduleSummaryMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
 class DoctorScheduleServiceImplTest {
 
     @Mock
     private DoctorRepository doctorRepository;
-
     @Mock
     private DoctorScheduleRepository scheduleRepository;
-
-    @Mock
-    private DoctorScheduleMapper mapper;
-
-    @Mock
-    private DoctorScheduleSummaryMapper summaryMapper;
 
     @InjectMocks
     private DoctorScheduleServiceImpl service;
@@ -55,43 +52,136 @@ class DoctorScheduleServiceImplTest {
     private UUID doctorId;
 
     @BeforeEach
+    // Setea mappers reales para evitar falsos positivos por mockeo de MapStruct.
     void setUp() {
         doctorId = UUID.randomUUID();
+
+        var mapperImpl = new DoctorScheduleMapperImpl();
+        var summaryMapperImpl = new DoctorScheduleSummaryMapperImpl();
+
+        setField(service, "mapper", mapperImpl);
+        setField(service, "summaryMapper", summaryMapperImpl);
+    }
+
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+            return;
+        } catch (NoSuchFieldException e) {
+            Class<?> cls = target.getClass().getSuperclass();
+            while (cls != null) {
+                try {
+                    Field f = cls.getDeclaredField(fieldName);
+                    f.setAccessible(true);
+                    f.set(target, value);
+                    return;
+                } catch (NoSuchFieldException ex) {
+                    cls = cls.getSuperclass();
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
-    void createShouldSaveScheduleWhenDoctorIsActiveAndNoOverlap() {
+    void shouldCreateDoctorScheduleWhenAllValidationsPass() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
-        DoctorSchedule entity = DoctorSchedule.builder().dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
-        DoctorSchedule saved = DoctorSchedule.builder().id(UUID.randomUUID()).dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
-        DoctorScheduleResponse response = new DoctorScheduleResponse(saved.getId(), null, DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
+        UUID scheduleId = UUID.randomUUID();
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
         when(scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, DayOfWeek.MONDAY)).thenReturn(List.of());
-        when(mapper.toEntity(request)).thenReturn(entity);
-        when(scheduleRepository.save(entity)).thenReturn(saved);
-        when(mapper.toResponse(saved)).thenReturn(response);
+        when(scheduleRepository.save(any(DoctorSchedule.class))).thenAnswer(inv -> {
+            DoctorSchedule schedule = inv.getArgument(0);
+            schedule.setId(scheduleId);
+            return schedule;
+        });
 
         DoctorScheduleResponse result = service.create(doctorId, request);
 
         assertNotNull(result);
+        assertEquals(scheduleId, result.id());
         assertEquals(DayOfWeek.MONDAY, result.dayOfWeek());
-        verify(scheduleRepository).save(entity);
+        assertEquals(LocalTime.of(8, 0), result.startTime());
+        assertEquals(LocalTime.of(12, 0), result.endTime());
+        assertEquals(doctorId, result.doctor().id());
+        verify(scheduleRepository).save(any(DoctorSchedule.class));
     }
 
     @Test
-    void createShouldRejectInactiveDoctor() {
+    void shouldThrowNPEWhenDoctorIdIsNullForCreate() {
+        DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
+
+        assertThrows(NullPointerException.class, () -> service.create(null, request));
+    }
+
+    @Test
+    void shouldThrowNPEWhenRequestIsNullForCreate() {
+        assertThrows(NullPointerException.class, () -> service.create(doctorId, null));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundWhenDoctorDoesNotExistForCreate() {
+        DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenDoctorIsInactiveForCreate() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.INACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
 
         assertThrows(ConflictException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
     }
 
     @Test
-    void createShouldRejectOverlappingSchedule() {
+    void shouldThrowIllegalArgumentWhenDayOfWeekIsNullForCreate() {
+        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(null, LocalTime.of(8, 0), LocalTime.of(12, 0));
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+
+        assertThrows(IllegalArgumentException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentWhenStartOrEndIsNullForCreate() {
+        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), null);
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+
+        assertThrows(IllegalArgumentException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenStartTimeIsNotBeforeEndTimeForCreate() {
+        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(12, 0), LocalTime.of(8, 0));
+
+        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+
+        assertThrows(ConflictException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenScheduleOverlapsForCreate() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(9, 0), LocalTime.of(11, 0));
         DoctorSchedule existing = DoctorSchedule.builder().dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(10, 0)).build();
@@ -100,10 +190,11 @@ class DoctorScheduleServiceImplTest {
         when(scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, DayOfWeek.MONDAY)).thenReturn(List.of(existing));
 
         assertThrows(ConflictException.class, () -> service.create(doctorId, request));
+        verify(scheduleRepository, never()).save(any());
     }
 
     @Test
-    void isWithinScheduleShouldReturnTrueWhenRangeFitsInsideBlock() {
+    void shouldReturnTrueWhenRangeFitsInsideScheduleForIsWithinSchedule() {
         LocalDateTime start = LocalDateTime.of(2026, 4, 6, 8, 0);
         LocalDateTime end = LocalDateTime.of(2026, 4, 6, 11, 0);
         DoctorSchedule schedule = DoctorSchedule.builder().dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
@@ -115,7 +206,7 @@ class DoctorScheduleServiceImplTest {
     }
 
     @Test
-    void isWithinScheduleShouldReturnFalseWhenRangeOutsideBlock() {
+    void shouldReturnFalseWhenRangeOutsideScheduleForIsWithinSchedule() {
         LocalDateTime start = LocalDateTime.of(2026, 4, 6, 7, 0);
         LocalDateTime end = LocalDateTime.of(2026, 4, 6, 9, 0);
         DoctorSchedule schedule = DoctorSchedule.builder().dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
@@ -127,17 +218,100 @@ class DoctorScheduleServiceImplTest {
     }
 
     @Test
-    void findByDoctorAndDayShouldReturnMappedSchedules() {
-        DoctorSchedule schedule = DoctorSchedule.builder().id(UUID.randomUUID()).dayOfWeek(DayOfWeek.MONDAY).startTime(LocalTime.of(8, 0)).endTime(LocalTime.of(12, 0)).build();
-        DoctorScheduleSummaryResponse response = new DoctorScheduleSummaryResponse(schedule.getId(), DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
+    void shouldReturnFalseWhenStartIsNotBeforeEndForIsWithinSchedule() {
+        LocalDateTime start = LocalDateTime.of(2026, 4, 6, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 4, 6, 10, 0);
 
-        when(scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, DayOfWeek.MONDAY)).thenReturn(List.of(schedule));
-        when(summaryMapper.toSummaryResponse(schedule)).thenReturn(response);
+        when(doctorRepository.existsById(doctorId)).thenReturn(true);
+
+        assertFalse(service.isWithinSchedule(doctorId, start, end));
+        verify(scheduleRepository, never()).findByDoctor_IdAndDayOfWeek(any(), any());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundWhenDoctorDoesNotExistForIsWithinSchedule() {
+        LocalDateTime start = LocalDateTime.of(2026, 4, 6, 8, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 4, 6, 9, 0);
+
+        when(doctorRepository.existsById(doctorId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> service.isWithinSchedule(doctorId, start, end));
+    }
+
+    @Test
+    void shouldReturnSortedSchedulesForFindByDoctorAndDay() {
+        DoctorSchedule scheduleLater = DoctorSchedule.builder()
+                .id(UUID.randomUUID())
+                .dayOfWeek(DayOfWeek.MONDAY)
+                .startTime(LocalTime.of(10, 0))
+                .endTime(LocalTime.of(12, 0))
+                .build();
+        DoctorSchedule scheduleEarlier = DoctorSchedule.builder()
+                .id(UUID.randomUUID())
+                .dayOfWeek(DayOfWeek.MONDAY)
+                .startTime(LocalTime.of(8, 0))
+                .endTime(LocalTime.of(9, 0))
+                .build();
+
+        when(doctorRepository.existsById(doctorId)).thenReturn(true);
+        when(scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, DayOfWeek.MONDAY))
+            .thenReturn(new ArrayList<>(List.of(scheduleLater, scheduleEarlier)));
 
         List<DoctorScheduleSummaryResponse> results = service.findByDoctorAndDay(doctorId, DayOfWeek.MONDAY);
 
-        assertEquals(1, results.size());
-        assertEquals(schedule.getId(), results.get(0).id());
+        assertEquals(2, results.size());
+        assertEquals(scheduleEarlier.getId(), results.get(0).id());
+        assertEquals(scheduleLater.getId(), results.get(1).id());
+    }
+
+    @Test
+    void shouldThrowNPEWhenDoctorIdIsNullForFindByDoctorAndDay() {
+        assertThrows(NullPointerException.class, () -> service.findByDoctorAndDay(null, DayOfWeek.MONDAY));
+    }
+
+    @Test
+    void shouldThrowNPEWhenDayIsNullForFindByDoctorAndDay() {
+        assertThrows(NullPointerException.class, () -> service.findByDoctorAndDay(doctorId, null));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundWhenDoctorDoesNotExistForFindByDoctorAndDay() {
+        when(doctorRepository.existsById(doctorId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> service.findByDoctorAndDay(doctorId, DayOfWeek.MONDAY));
+    }
+
+    @Test
+    void shouldReturnSortedSchedulesForFindByDoctor() {
+        DoctorSchedule scheduleLater = DoctorSchedule.builder()
+                .id(UUID.randomUUID())
+                .dayOfWeek(DayOfWeek.MONDAY)
+                .startTime(LocalTime.of(10, 0))
+                .endTime(LocalTime.of(12, 0))
+                .build();
+        DoctorSchedule scheduleEarlier = DoctorSchedule.builder()
+                .id(UUID.randomUUID())
+                .dayOfWeek(DayOfWeek.MONDAY)
+                .startTime(LocalTime.of(8, 0))
+                .endTime(LocalTime.of(9, 0))
+                .build();
+
+        when(doctorRepository.existsById(doctorId)).thenReturn(true);
+        when(scheduleRepository.findByDoctor_Id(doctorId))
+            .thenReturn(new ArrayList<>(List.of(scheduleLater, scheduleEarlier)));
+
+        List<DoctorScheduleSummaryResponse> results = service.findByDoctor(doctorId);
+
+        assertEquals(2, results.size());
+        assertEquals(scheduleEarlier.getId(), results.get(0).id());
+        assertEquals(scheduleLater.getId(), results.get(1).id());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundWhenDoctorDoesNotExistForFindByDoctor() {
+        when(doctorRepository.existsById(doctorId)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> service.findByDoctor(doctorId));
     }
 
 }
