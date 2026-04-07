@@ -6,11 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.time.ZoneOffset;
 import java.util.UUID;
+import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
@@ -33,41 +35,24 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentTypeRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
-import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
-import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentMapper;
-import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.service.validator.AppointmentValidator;
+import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.PatientSummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.OfficeSummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentTypeSummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.SpecialtySummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.DoctorSummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentSummaryMapperImpl;
 
 @ExtendWith(MockitoExtension.class)
 class AppointmentServiceImplTest {
 
     @Mock
     private AppointmentRepository appointmentRepository;
-
     @Mock
-    private PatientRepository patientRepository;
-
-    @Mock
-    private DoctorRepository doctorRepository;
-
-    @Mock
-    private OfficeRepository officeRepository;
-
-    @Mock
-    private AppointmentTypeRepository appointmentTypeRepository;
-
-    @Mock
-    private DoctorScheduleService doctorScheduleService;
-
-    @Mock
-    private AppointmentMapper mapper;
-
-    @Mock
-    private AppointmentSummaryMapper summaryMapper;
+    private AppointmentValidator validator;
 
     @InjectMocks
     private AppointmentServiceImpl service;
@@ -77,184 +62,620 @@ class AppointmentServiceImplTest {
     private UUID officeId;
     private UUID appointmentTypeId;
     private UUID appointmentId;
+    private LocalDateTime baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
 
+    // Metodo para setear mappers de forma manual con sus dependencias, ya que @Spy no detecta estas dependencias
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         patientId = UUID.randomUUID();
         doctorId = UUID.randomUUID();
         officeId = UUID.randomUUID();
         appointmentTypeId = UUID.randomUUID();
         appointmentId = UUID.randomUUID();
+    
+        var patientSummaryMapperImpl = new PatientSummaryMapperImpl();
+        var officeSummaryMapperImpl = new OfficeSummaryMapperImpl();
+        var appointmentTypeSummaryMapperImpl = new AppointmentTypeSummaryMapperImpl();
+        var specialtySummaryMapperImpl = new SpecialtySummaryMapperImpl();
+        var doctorSummaryMapperImpl = new DoctorSummaryMapperImpl();
+        var appointmentSummaryMapperImpl = new AppointmentSummaryMapperImpl();
+        var appointmentMapperImpl = new AppointmentMapperImpl();
+    
+        setField(doctorSummaryMapperImpl, "specialtySummaryMapper", specialtySummaryMapperImpl);
+    
+        setField(appointmentSummaryMapperImpl, "patientSummaryMapper", patientSummaryMapperImpl);
+        setField(appointmentSummaryMapperImpl, "doctorSummaryMapper", doctorSummaryMapperImpl);
+    
+        setField(appointmentMapperImpl, "patientSummaryMapper", patientSummaryMapperImpl);
+        setField(appointmentMapperImpl, "doctorSummaryMapper", doctorSummaryMapperImpl);
+        setField(appointmentMapperImpl, "officeSummaryMapper", officeSummaryMapperImpl);
+        setField(appointmentMapperImpl, "appointmentTypeSummaryMapper", appointmentTypeSummaryMapperImpl);
+    
+        // overwrite the service fields created by @InjectMocks with our real mappers
+        setField(service, "mapper", appointmentMapperImpl);
+        setField(service, "summaryMapper", appointmentSummaryMapperImpl);
+    }
+    
+    // Metodo helper para setear las dependencias de los mappers manualmente
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+            return;
+        } catch (NoSuchFieldException e) {
+            Class<?> cls = target.getClass().getSuperclass();
+            while (cls != null) {
+                try {
+                    Field f = cls.getDeclaredField(fieldName);
+                    f.setAccessible(true);
+                    f.set(target, value);
+                    return;
+                } catch (NoSuchFieldException ex) {
+                    cls = cls.getSuperclass();
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
-    void createShouldCreateAppointmentWhenAllValidationsPass() {
-        LocalDateTime startAt = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endAt = startAt.plusMinutes(30);
+    void shouldCreateAppointmentWhenAllValidationsPass() {
+        var startAt = baseDateTime.plusDays(1);
 
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
 
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
-        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
-        Office office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
-        AppointmentType type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
 
-        Appointment entity = new Appointment();
-        Appointment saved = Appointment.builder()
-                .id(appointmentId)
-                .patient(patient)
-                .doctor(doctor)
-                .office(office)
-                .appointmentType(type)
-                .startAt(startAt)
-                .endAt(endAt)
-                .status(AppointmentStatus.SCHEDULED)
-                .createdAt(Instant.now())
-                .build();
+        when(validator.validatePatientExistsAndActive(patientId)).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctorId)).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(officeId)).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(appointmentTypeId)).thenReturn(type);
+        doNothing().when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForDoctor(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForOffice(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForPatient(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        when(appointmentRepository.save(any())).thenAnswer(inv -> {
+            Appointment a = inv.getArgument(0);
+            a.setId(appointmentId);
+            return a;
+        });
 
-        AppointmentResponse response = new AppointmentResponse(
-                appointmentId, null, null, null, null, startAt, endAt, AppointmentStatus.SCHEDULED, null, null, null, null);
-
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
-        when(appointmentTypeRepository.findById(appointmentTypeId)).thenReturn(Optional.of(type));
-        when(doctorScheduleService.isWithinSchedule(doctorId, startAt, endAt)).thenReturn(true);
-        when(appointmentRepository.existsOverlapForDoctor(doctorId, startAt, endAt)).thenReturn(false);
-        when(appointmentRepository.existsOverlapForOffice(officeId, startAt, endAt)).thenReturn(false);
-        when(appointmentRepository.existsOverlapForPatient(patientId, startAt, endAt)).thenReturn(false);
-        when(mapper.toEntity(request)).thenReturn(entity);
-        when(appointmentRepository.save(any(Appointment.class))).thenReturn(saved);
-        when(mapper.toResponse(saved)).thenReturn(response);
-
-        AppointmentResponse result = service.create(request);
+        var result = service.create(request);
 
         assertNotNull(result);
+        verify(appointmentRepository).save(any(Appointment.class));
         assertEquals(appointmentId, result.id());
+        assertEquals(patientId, result.patient().id());
+        assertEquals(doctorId, result.doctor().id());
+        assertEquals(officeId, result.office().id());
+        assertEquals(appointmentTypeId, result.appointmentType().id());
+        assertEquals(startAt, result.startAt());
+        assertEquals(startAt.plusMinutes(type.getDurationMinutes()), result.endAt());
         assertEquals(AppointmentStatus.SCHEDULED, result.status());
+        assertEquals(result.cancelReason(), null);
+        assertEquals(result.observations(), null);
+        assertNotNull(result.createdAt());
     }
 
     @Test
-    void createShouldThrowConflictWhenPatientInactive() {
-        LocalDateTime startAt = LocalDateTime.now().plusDays(1);
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.INACTIVE).build();
+    void shouldThrowNPEWhenRequestIsNullForCreate() {
+        assertThrows(NullPointerException.class, () -> service.create(null));
+    }
 
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenDoctorDoesNotExistForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        when(validator.validatePatientExistsAndActive(patientId)).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctorId)).thenThrow(new ResourceNotFoundException("Doctor not found with id " + doctorId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.create(request));
+
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenOfficeDoesNotExistForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        when(validator.validatePatientExistsAndActive(patientId)).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctorId)).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(officeId)).thenThrow(new ResourceNotFoundException("Office not found with id " + officeId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.create(request));
+
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(validator).validateOfficeExistsAndAvailable(officeId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenAppointmentTypeDoesNotExistForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        when(validator.validatePatientExistsAndActive(patientId)).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctorId)).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(officeId)).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(appointmentTypeId)).thenThrow(new ResourceNotFoundException("Appointment type not found with id " + appointmentTypeId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(validator).validateOfficeExistsAndAvailable(officeId);
+        verify(validator).validateAppointmentTypeExists(appointmentTypeId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenPatientDoesNotExistForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        when(validator.validatePatientExistsAndActive(patientId)).thenThrow(new ResourceNotFoundException("Patient not found with id " + patientId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenPatientInactiveForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+        
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.INACTIVE).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenThrow(new ConflictException("Patient is not active"));
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(appointmentRepository, never()).save(any());
     }
 
     @Test
-    void createShouldThrowConflictWhenDoctorInactive() {
-        LocalDateTime startAt = LocalDateTime.now().plusDays(1);
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
-        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.INACTIVE).build();
+    void shouldThrowConflictWhenDoctorInactiveForCreate() {
+        var startAt = baseDateTime.plusDays(1);
 
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.INACTIVE).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenThrow(new ConflictException("Doctor is not active"));
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(appointmentRepository, never()).save(any());
     }
 
     @Test
-    void createShouldThrowConflictWhenOfficeUnavailable() {
-        LocalDateTime startAt = LocalDateTime.now().plusDays(1);
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
-        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
-        Office office = Office.builder().id(officeId).status(OfficeStatus.MAINTENANCE).build();
+    void shouldThrowConflictWhenOfficeUnavailableForCreate() {
+        var startAt = baseDateTime.plusDays(1);
 
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.MAINTENANCE).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenThrow(new ConflictException("Office is not available"));
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(validator).validateOfficeExistsAndAvailable(officeId);
+        verify(appointmentRepository, never()).save(any());
     }
 
     @Test
-    void createShouldThrowConflictWhenDateInPast() {
-        LocalDateTime startAt = LocalDateTime.now().minusHours(1);
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
-        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
-        Office office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+    void shouldThrowConflictWhenDateInPastForCreate() {
+        var startAt = baseDateTime.minusDays(1);
 
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doThrow(new ConflictException("Cannot create appointment in the past")).when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validatePatientExistsAndActive(patientId);
+        verify(validator).validateDoctorExistsAndActive(doctorId);
+        verify(validator).validateOfficeExistsAndAvailable(officeId);
+        verify(validator).validateAppointmentTypeExists(appointmentTypeId);
+        verify(appointmentRepository, never()).save(any());
     }
 
     @Test
-    void createShouldThrowConflictWhenDoctorHasOverlap() {
-        LocalDateTime startAt = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime endAt = startAt.plusMinutes(30);
-        AppointmentCreateRequest request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
-        Patient patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
-        Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
-        Office office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
-        AppointmentType type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+    void shouldThrowConflictWhenStartAtIsAfterEndAtForCreate() {
+        var startAt = baseDateTime.plusDays(1);
 
-        when(patientRepository.findById(patientId)).thenReturn(Optional.of(patient));
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
-        when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
-        when(appointmentTypeRepository.findById(appointmentTypeId)).thenReturn(Optional.of(type));
-        when(doctorScheduleService.isWithinSchedule(doctorId, startAt, endAt)).thenReturn(true);
-        when(appointmentRepository.existsOverlapForDoctor(doctorId, startAt, endAt)).thenReturn(true);
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(-30).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doThrow(new ConflictException("Appointment end time must be after start time")).when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validateAppointmentStartAtEndAt(any(), any());
+        verify(appointmentRepository, never()).save(any());
     }
 
     @Test
-    void confirmShouldChangeStatusToConfirmed() {
-        Appointment appointment = new Appointment();
-        appointment.setId(appointmentId);
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
+    void shouldThrowConflictWhenAppointmentOutsideDoctorScheduleForCreate() {
+        var startAt = baseDateTime.plusDays(1);
 
-        Appointment updated = new Appointment();
-        updated.setId(appointmentId);
-        updated.setStatus(AppointmentStatus.CONFIRMED);
-        updated.setUpdatedAt(Instant.now());
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+        
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
 
-        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CONFIRMED, null, null, null, null);
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doNothing().when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
+        doThrow(new ConflictException("Appointment time is outside of doctor's schedule")).when(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
 
-        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
-        when(appointmentRepository.save(any(Appointment.class))).thenReturn(updated);
-        when(summaryMapper.toSummaryResponse(updated)).thenReturn(response);
+        assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(appointmentRepository, never()).save(any());
+    }
 
-        AppointmentSummaryResponse result = service.confirm(appointmentId);
+    @Test
+    void shouldThrowConflictWhenDoctorHasOverlapForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doNothing().when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doThrow(new ConflictException("Doctor has another appointment during this time")).when(validator).validateNoOverlapForDoctor(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+
+        assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validateNoOverlapForDoctor(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenOfficeHasOverlapForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doNothing().when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForDoctor(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doThrow(new ConflictException("Office has another appointment during this time")).when(validator).validateNoOverlapForOffice(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+    
+        assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validateNoOverlapForOffice(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictWhenPatientHasOverlapForCreate() {
+        var startAt = baseDateTime.plusDays(1);
+
+        var request = new AppointmentCreateRequest(doctorId, patientId, officeId, appointmentTypeId, startAt);
+
+        var patient = Patient.builder().id(patientId).status(PatientStatus.ACTIVE).build();
+        var doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
+        var office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+
+        when(validator.validatePatientExistsAndActive(patient.getId())).thenReturn(patient);
+        when(validator.validateDoctorExistsAndActive(doctor.getId())).thenReturn(doctor);
+        when(validator.validateOfficeExistsAndAvailable(office.getId())).thenReturn(office);
+        when(validator.validateAppointmentTypeExists(type.getId())).thenReturn(type);
+        doNothing().when(validator).validateAppointmentStartAtEndAt(any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateAppointmentWithinDoctorSchedule(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForDoctor(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doNothing().when(validator).validateNoOverlapForOffice(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        doThrow(new ConflictException("Patient has another appointment during this time")).when(validator).validateNoOverlapForPatient(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+
+        assertThrows(ConflictException.class, () -> service.create(request));
+        verify(validator).validateNoOverlapForPatient(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldChangeStatusToConfirmedForConfirm() {
+        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
+        
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
+            Appointment a = inv.getArgument(0);
+            a.setId(appointmentId);
+            a.setStatus(AppointmentStatus.CONFIRMED);
+            a.setUpdatedAt(instantBaseDateTime);
+            return a;
+        });
+
+        var result = service.confirm(appointmentId);
 
         assertEquals(AppointmentStatus.CONFIRMED, result.status());
+        assertEquals(appointmentId, result.id());
+        assertEquals(instantBaseDateTime, result.updatedAt());
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
     @Test
-    void cancelShouldChangeStatusToCancelled() {
-        Appointment appointment = new Appointment();
-        appointment.setId(appointmentId);
-        appointment.setStatus(AppointmentStatus.SCHEDULED);
+    void shouldThrowNPEWhenIdIsNullForConfirm() {
+        assertThrows(NullPointerException.class, () -> service.confirm(null));
+    }
 
-        AppointmentCancelRequest request = new AppointmentCancelRequest("Medical issue");
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenAppointmentDoesNotExistForConfirm() {
+        when(validator.validateAppointmentExists(appointmentId)).thenThrow(new ResourceNotFoundException("Appointment not found with id " + appointmentId));
 
-        Appointment updated = new Appointment();
-        updated.setId(appointmentId);
-        updated.setStatus(AppointmentStatus.CANCELLED);
-        updated.setCancelReason("Medical issue");
-        updated.setUpdatedAt(Instant.now());
+        assertThrows(ResourceNotFoundException.class, () -> service.confirm(appointmentId));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
 
-        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CANCELLED, "Medical issue", null, null, null);
+    @Test
+    void shouldThrowConflictExceptionWhenAppointmentNotScheduledForConfirm() {
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.CANCELLED).build();
 
-        when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
-        when(appointmentRepository.save(any(Appointment.class))).thenReturn(updated);
-        when(summaryMapper.toSummaryResponse(updated)).thenReturn(response);
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
 
-        AppointmentSummaryResponse result = service.cancel(appointmentId, request);
+        assertThrows(ConflictException.class, () -> service.confirm(appointmentId));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldChangeStatusToCancelledForCancel() {
+        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
+        
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
+
+        var request = new AppointmentCancelRequest("Medical issue");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
+            Appointment a = inv.getArgument(0);
+            a.setId(appointmentId);
+            a.setStatus(AppointmentStatus.CANCELLED);
+            a.setCancelReason(request.cancelReason().trim());
+            a.setUpdatedAt(instantBaseDateTime);
+            return a;
+        });
+
+        var result = service.cancel(appointmentId, request);
 
         assertEquals(AppointmentStatus.CANCELLED, result.status());
+        assertEquals(appointmentId, result.id());
+        assertEquals(instantBaseDateTime, result.updatedAt());
         assertEquals("Medical issue", result.cancelReason());
+        verify(appointmentRepository).save(any(Appointment.class));
+    }
+
+    @Test
+    void shouldThrowNPEWhenIdIsNullForCancel() {
+        var request = new AppointmentCancelRequest("Reason");
+        assertThrows(NullPointerException.class, () -> service.cancel(null, request));
+    }
+
+    @Test
+    void shouldThrowNPEWhenRequestIsNullForCancel() {
+        assertThrows(NullPointerException.class, () -> service.cancel(appointmentId, null));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenAppointmentDoesNotExistForCancel() {
+        var request = new AppointmentCancelRequest("Reason");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenThrow(new ResourceNotFoundException("Appointment not found with id " + appointmentId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.cancel(appointmentId, request));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictExceptionWhenAppointmentNotScheduledOrConfirmedForCancel() {
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.COMPLETED).build();
+
+        var request = new AppointmentCancelRequest("Reason");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+
+        assertThrows(ConflictException.class, () -> service.cancel(appointmentId, request));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldChangeStatusToCompletedForComplete() {
+        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
+        
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.CONFIRMED).startAt(baseDateTime).build();    
+
+        var request = new AppointmentCompleteRequest("Good progress");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
+            Appointment a = inv.getArgument(0);
+            a.setId(appointmentId);
+            a.setStatus(AppointmentStatus.COMPLETED);
+            a.setObservations(request.observations().trim());
+            a.setUpdatedAt(instantBaseDateTime);
+            return a;
+        });
+
+        var result = service.complete(appointmentId, request);
+
+        assertEquals(AppointmentStatus.COMPLETED, result.status());
+        assertEquals(appointmentId, result.id());
+        assertEquals(instantBaseDateTime, result.updatedAt());
+        assertEquals("Good progress", result.observations());
+        verify(appointmentRepository).save(any(Appointment.class));
+    }
+
+    @Test
+    void shouldThrowNPEWhenIdIsNullForComplete() {
+        var request = new AppointmentCompleteRequest("Observations");
+        assertThrows(NullPointerException.class, () -> service.complete(null, request));
+    }
+
+    @Test
+    void shouldThrowNPEWhenRequestIsNullForComplete() {
+        assertThrows(NullPointerException.class, () -> service.complete(appointmentId, null));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenAppointmentDoesNotExistForComplete() {
+        var request = new AppointmentCompleteRequest("Observations");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenThrow(new ResourceNotFoundException("Appointment not found with id " + appointmentId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.complete(appointmentId, request));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictExceptionWhenAppointmentNotConfirmedForComplete() {
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
+        var request = new AppointmentCompleteRequest("Observations");
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+
+        assertThrows(ConflictException.class, () -> service.complete(appointmentId, request));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldMarkStatusAsNoShowForMarkNoShow() {
+        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
+        
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.CONFIRMED).startAt(baseDateTime).build();
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
+            Appointment a = inv.getArgument(0);
+            a.setId(appointmentId);
+            a.setStatus(AppointmentStatus.NO_SHOW);
+            a.setUpdatedAt(instantBaseDateTime);
+            return a;
+        });
+
+        var result = service.markNoShow(appointmentId);
+
+        assertEquals(AppointmentStatus.NO_SHOW, result.status());
+        assertEquals(appointmentId, result.id());
+        assertEquals(instantBaseDateTime, result.updatedAt());
+        verify(appointmentRepository).save(any(Appointment.class));
+    }
+
+    @Test
+    void shouldThrowNPEWhenIdIsNullForMarkNoShow() {
+        assertThrows(NullPointerException.class, () -> service.markNoShow(null));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenAppointmentDoesNotExistForMarkNoShow() {
+        when(validator.validateAppointmentExists(appointmentId)).thenThrow(new ResourceNotFoundException("Appointment not found with id " + appointmentId));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.markNoShow(appointmentId));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictExceptionWhenAppointmentNotConfirmedForMarkNoShow() {
+        var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+
+        assertThrows(ConflictException.class, () -> service.markNoShow(appointmentId));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowConflictExceptionWhenMarkingBeforeScheduledStartTimeForMarkNoShow() {
+        var appointment = new Appointment();
+        appointment.setId(appointmentId);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStartAt(LocalDateTime.now().plusHours(1));
+
+        when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
+
+        assertThrows(ConflictException.class, () -> service.markNoShow(appointmentId));
+        verify(validator).validateAppointmentExists(appointmentId);
+        verify(appointmentRepository, never()).save(any());
     }
 
 }

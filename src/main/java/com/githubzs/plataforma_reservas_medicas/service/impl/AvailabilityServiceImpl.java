@@ -36,6 +36,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final AppointmentRepository appointmentRepository;
 
+    // La implementación actual no toma en cuenta citas que iniciaron el dia anterior pero terminan el dia consultado
     @Override
     @Transactional(readOnly = true)
     public List<AvailabilitySlotResponse> getAvailableSlots(UUID doctorId, LocalDate date) {

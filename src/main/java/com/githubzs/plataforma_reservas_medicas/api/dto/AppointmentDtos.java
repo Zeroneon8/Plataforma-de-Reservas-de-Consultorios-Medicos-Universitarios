@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
@@ -36,7 +36,7 @@ public class AppointmentDtos {
         String cancelReason
     ) implements Serializable {}
 
-    public record AppointmentCompleteRequestDto(
+    public record AppointmentCompleteRequest(
         @Size(max = 1000) 
         String observations
     ) implements Serializable {}
@@ -46,7 +46,7 @@ public class AppointmentDtos {
         PatientSummaryResponse patient,
         DoctorSummaryResponse doctor,
         OfficeSummaryResponse office,
-        AppointmentTypeResponse appointmentType,
+        AppointmentTypeSummaryResponse appointmentType,
         LocalDateTime startAt,
         LocalDateTime endAt,
         AppointmentStatus status,

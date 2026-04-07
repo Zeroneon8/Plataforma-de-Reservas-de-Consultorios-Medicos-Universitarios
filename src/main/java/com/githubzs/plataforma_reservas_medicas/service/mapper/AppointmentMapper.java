@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequestDto;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
@@ -58,7 +58,7 @@ public interface AppointmentMapper {
     @Mapping(target = "doctor", ignore = true)
     @Mapping(target = "office", ignore = true)
     @Mapping(target = "appointmentType", ignore = true)
-    void applyCompleteRequest(AppointmentCompleteRequestDto request, @MappingTarget Appointment appointment);
+    void applyCompleteRequest(AppointmentCompleteRequest request, @MappingTarget Appointment appointment);
 
     AppointmentResponse toResponse(Appointment appointment);
 
