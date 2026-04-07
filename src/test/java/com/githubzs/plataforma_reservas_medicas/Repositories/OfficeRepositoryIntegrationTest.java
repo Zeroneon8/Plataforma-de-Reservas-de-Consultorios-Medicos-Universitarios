@@ -490,7 +490,7 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         // Given - ya creado en el setUp() con roomNumber = 101
 
         // When
-        var exist = officeRepository.existsByRoomNumber("101");
+        var exist = officeRepository.existsByRoomNumber(101);
 
         // Then
         assertThat(exist).isTrue();
@@ -502,7 +502,7 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         // Given - ya creado en el setUp()
 
         // When
-        var exist = officeRepository.existsByRoomNumber("999");
+        var exist = officeRepository.existsByRoomNumber(999);
 
         // Then
         assertThat(exist).isFalse();
