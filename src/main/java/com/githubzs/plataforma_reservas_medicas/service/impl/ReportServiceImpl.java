@@ -2,7 +2,6 @@ package com.githubzs.plataforma_reservas_medicas.service.impl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,7 +40,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         LocalDateTime fromDateTime = from.atStartOfDay();
-        LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+        LocalDateTime toDateTime = to.plusDays(1).atStartOfDay().minusSeconds(1);
 
         List<OfficeOccupancyDto> dtos = officeRepository.calculateOfficeOccupancyBetween(fromDateTime, toDateTime);
 
@@ -89,7 +88,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         LocalDateTime fromDateTime = from.atStartOfDay();
-        LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+        LocalDateTime toDateTime = to.plusDays(1).atStartOfDay().minusSeconds(1);
 
         List<PatientNoShowStatsDto> dtos = patientRepository.countPatientsNoShow(fromDateTime, toDateTime);
 
