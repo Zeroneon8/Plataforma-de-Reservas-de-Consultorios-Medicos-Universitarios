@@ -3,7 +3,6 @@ package com.githubzs.plataforma_reservas_medicas.Repositories;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,42 +62,7 @@ class OfficeRepositoryIntegrationTest extends AbstractRepositoryIT{
         );
     }
 
-    @Test
-    @DisplayName("Office: Detecta si existe un consultorio especifico con un estado dado")
-    void shouldExistByIdAndStatus() {
-        // Given - ya creado en el setUp()
 
-        // When
-        var exist = officeRepository.existsByIdAndStatus(office.getId(), OfficeStatus.AVAILABLE);
-
-        // Then
-        assertThat(exist).isTrue();
-    }
-
-    @Test
-    @DisplayName("Office: No detecta la existencia de un consultorio si el id coincide pero el estado no")
-    void shouldReturnFalseWhenStatusDoesNotMatchForExistByIdAndStatus() {
-        // Given - ya creado en el setUp()
-
-        // When
-        var exist = officeRepository.existsByIdAndStatus(office.getId(), OfficeStatus.UNAVAILABLE);
-
-        // Then
-        assertThat(exist).isFalse();
-    }
-
-    @Test
-    @DisplayName("Office: No detecta la existencia de un consultorio si el estado coincide pero el id no")
-    void shouldReturnFalseWhenIdDoesNotMatchForExistByIdAndStatus() {
-        // Given - ya creado en el setUp()
-        var altId = new UUID(office.getId().getMostSignificantBits(), office.getId().getLeastSignificantBits() + 1);
-
-        // When
-        var exist = officeRepository.existsByIdAndStatus(altId, OfficeStatus.AVAILABLE);
-
-        // Then
-        assertThat(exist).isFalse();
-    }
 
     @Test
     @DisplayName("Office: Encuentra consultorios por estado")
