@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Objects;
+import java.util.Comparator;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,15 +40,14 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional
     public DoctorScheduleResponse create(UUID doctorId, DoctorScheduleCreateRequest request) {
+        Objects.requireNonNull(doctorId, "Doctor id is required");
+        Objects.requireNonNull(request, "Doctor schedule request is required");
+        
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
 
         if (doctor.getStatus() != DoctorStatus.ACTIVE) {
             throw new ConflictException("Doctor is not active");
-        }
-
-        if (request == null) {
-            throw new IllegalArgumentException("Doctor schedule request is required");
         }
         if (request.dayOfWeek() == null) {
             throw new IllegalArgumentException("Day of week is required");
@@ -57,6 +58,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         if (!request.startTime().isBefore(request.endTime())) {
             throw new ConflictException("Schedule start time must be before end time");
         }
+
         validateNoOverlap(doctorId, request.dayOfWeek(), request.startTime(), request.endTime());
 
         DoctorSchedule schedule = mapper.toEntity(request);
@@ -72,7 +74,11 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
-        return scheduleRepository.findByDoctor_Id(doctorId).stream()
+
+        List<DoctorSchedule> schedules = scheduleRepository.findByDoctor_Id(doctorId);
+
+        sortSchedules(schedules);
+        return schedules.stream()
                 .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
@@ -80,14 +86,17 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public List<DoctorScheduleSummaryResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day) {
-        if (doctorId == null) {
-            throw new IllegalArgumentException("Doctor id is required");
-        }
-        if (day == null) {
-            throw new IllegalArgumentException("Day of week is required");
+        Objects.requireNonNull(doctorId, "Doctor id is required");
+        Objects.requireNonNull(day, "Day of week is required");
+
+        if (!doctorRepository.existsById(doctorId)) {
+            throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
 
-        return scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, day).stream()
+        List<DoctorSchedule> schedules = scheduleRepository.findByDoctor_IdAndDayOfWeek(doctorId, day);
+
+        sortSchedules(schedules);
+        return schedules.stream()
                 .map(summaryMapper::toSummaryResponse)
                 .toList();
     }
@@ -95,11 +104,12 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public boolean isWithinSchedule(UUID doctorId, LocalDateTime start, LocalDateTime end) {
-        if (doctorId == null) {
-            throw new IllegalArgumentException("Doctor id is required");
-        }
-        if (start == null || end == null) {
-            return false;
+        Objects.requireNonNull(doctorId, "Doctor id is required");
+        Objects.requireNonNull(start, "Start time is required");
+        Objects.requireNonNull(end, "End time is required");
+
+        if (!doctorRepository.existsById(doctorId)) {
+            throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
         if (!start.isBefore(end)) {
             return false;
@@ -128,9 +138,16 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
                 });
     }
 
-    private boolean overlaps(LocalTime existingStart, LocalTime existingEnd,
-            LocalTime newStart, LocalTime newEnd) {
+    private boolean overlaps(LocalTime existingStart, LocalTime existingEnd, LocalTime newStart, LocalTime newEnd) {
         return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+    }
+
+    private void sortSchedules(List<DoctorSchedule> schedules) {
+        if (schedules == null || schedules.isEmpty()) return;
+        schedules.sort(
+            Comparator.comparing(DoctorSchedule::getStartTime)
+                    .thenComparing(DoctorSchedule::getEndTime)
+        );
     }
 
 }
