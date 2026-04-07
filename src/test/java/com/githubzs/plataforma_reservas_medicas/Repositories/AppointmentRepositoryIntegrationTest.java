@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
@@ -636,13 +637,20 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(5), AppointmentStatus.CONFIRMED)); // Fuera del rango
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            patient.getId(),
-            doctor.getId(),
-            AppointmentStatus.CONFIRMED,
-            baseDateTime.minusHours(1),
-            baseDateTime.plusHours(1)
-        );
+        var from = baseDateTime.minusHours(1);
+        var to = baseDateTime.plusHours(1);
+    
+        Specification<Appointment> spec = (root, query, cb) -> {
+            var patientSpec = cb.equal(root.get("patient").get("id"), patient.getId());
+            var doctorSpec = cb.equal(root.get("doctor").get("id"), doctor.getId());
+            var statusSpec  = cb.equal(root.get("status"), AppointmentStatus.CONFIRMED);
+            var fromSpec    = cb.greaterThanOrEqualTo(root.get("startAt"), from);
+            var toSpec      = cb.lessThan(root.get("startAt"), to); // excluye límite superior, como otros tests esperan
+
+            return cb.and(patientSpec, doctorSpec, statusSpec, fromSpec, toSpec);
+        };
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(1);
@@ -685,13 +693,10 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         );
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            patient.getId(),
-            null,
-            null,
-            null,
-            null
-        );
+        Specification<Appointment> spec = (root, query, cb) ->
+            cb.equal(root.get("patient").get("id"), patient.getId());
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(2);
@@ -733,13 +738,10 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         );
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            null,
-            doctor.getId(),
-            null,
-            null,
-            null
-        );
+        Specification<Appointment> spec = (root, query, cb) ->
+            cb.equal(root.get("doctor").get("id"), doctor.getId());
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(2);
@@ -756,13 +758,10 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(2), AppointmentStatus.SCHEDULED));
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            null,
-            null,
-            AppointmentStatus.CONFIRMED,
-            null,
-            null
-        );
+        Specification<Appointment> spec = (root, query, cb) ->
+            cb.equal(root.get("status"), AppointmentStatus.CONFIRMED);
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(1);
@@ -784,13 +783,14 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            null,
-            null,
-            null,
-            from,
-            to
-        );
+        Specification<Appointment> spec = (root, query, cb) -> {
+            var fromSpec = cb.greaterThanOrEqualTo(root.get("startAt"), from);
+            var toSpec = cb.lessThan(root.get("startAt"), to);
+
+            return cb.and(fromSpec, toSpec);
+        };
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(1);
@@ -807,7 +807,9 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         var appointment3 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(5), AppointmentStatus.CANCELLED));
 
         // When
-        var found = appointmentRepository.findAllWithFilters(null, null, null, null, null);
+        Specification<Appointment> spec = (root, query, cb) -> cb.conjunction();
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(3);
@@ -823,13 +825,18 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
 
         // When
-        var found = appointmentRepository.findAllWithFilters(
-            patient.getId(),
-            doctor.getId(),
-            AppointmentStatus.SCHEDULED, // Estado que no existe en las citas del doctor y paciente
-            baseDateTime.minusDays(5),
-            baseDateTime.minusDays(4)
-        );
+        Specification<Appointment> spec = (root, query, cb) -> {
+            // Filtros que no coinciden con ninguna cita
+            var patientSpec = cb.equal(root.get("patient").get("id"), patient.getId());
+            var doctorSpec = cb.equal(root.get("doctor").get("id"), doctor.getId());
+            var statusSpec = cb.equal(root.get("status"), AppointmentStatus.SCHEDULED);
+            var fromSpec = cb.greaterThanOrEqualTo(root.get("startAt"), baseDateTime.minusDays(5));
+            var toSpec = cb.lessThan(root.get("startAt"), baseDateTime.minusDays(4));
+
+            return cb.and(patientSpec, doctorSpec, statusSpec, fromSpec, toSpec);
+        };
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).isEmpty();
@@ -846,7 +853,14 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
         appointmentRepository.save(buildDefaultAppointment(to, AppointmentStatus.CONFIRMED)); // Exactly at the upper limit
 
         // When
-        var found = appointmentRepository.findAllWithFilters(null, null, null, from, to);
+        Specification<Appointment> spec = (root, query, cb) -> {
+            var fromSpec = cb.greaterThanOrEqualTo(root.get("startAt"), from);
+            var toSpec = cb.lessThan(root.get("startAt"), to);
+
+            return cb.and(fromSpec, toSpec);
+        };
+
+        var found = appointmentRepository.findAll(spec, Pageable.ofSize(10));
 
         // Then
         assertThat(found).hasSize(1);
