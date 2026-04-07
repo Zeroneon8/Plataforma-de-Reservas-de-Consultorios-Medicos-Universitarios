@@ -35,7 +35,6 @@ class AppointmentTypeServiceImplTest {
 
     @Mock
     private AppointmentTypeRepository repository;
-
     
     @InjectMocks
     private AppointmentTypeServiceImpl service;
