@@ -4,10 +4,10 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
