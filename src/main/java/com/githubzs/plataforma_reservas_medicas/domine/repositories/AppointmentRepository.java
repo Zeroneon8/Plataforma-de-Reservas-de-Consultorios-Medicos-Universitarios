@@ -8,13 +8,14 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
+public interface AppointmentRepository extends JpaRepository<Appointment, UUID>, JpaSpecificationExecutor<Appointment> {
 
     Page<Appointment> findByPatient_IdAndStatus(UUID patientId, AppointmentStatus status, Pageable pageable);
     
@@ -79,23 +80,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         @Param("doctorId") UUID doctorId,
         @Param("from") LocalDateTime from,
         @Param("to") LocalDateTime to
-    );
-
-    @Query("""
-    SELECT a FROM Appointment a
-    WHERE (:patientId IS NULL OR a.patient.id = :patientId)
-    AND (:doctorId IS NULL OR a.doctor.id = :doctorId)
-    AND (:status IS NULL OR a.status = :status)
-    AND (:dateFrom IS NULL OR a.startAt >= :dateFrom)
-    AND (:dateTo IS NULL OR a.startAt <= :dateTo)
-    ORDER BY a.startAt DESC
-    """)
-    List<Appointment> findAllWithFilters(
-        @Param("patientId") UUID patientId,
-        @Param("doctorId") UUID doctorId,
-        @Param("status") AppointmentStatus status,
-        @Param("dateFrom") LocalDateTime dateFrom,
-        @Param("dateTo") LocalDateTime dateTo
     );
 
 }
