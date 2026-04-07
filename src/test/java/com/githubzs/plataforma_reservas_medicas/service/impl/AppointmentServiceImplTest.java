@@ -11,7 +11,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 import java.lang.reflect.Field;
 
@@ -447,16 +446,12 @@ class AppointmentServiceImplTest {
 
     @Test
     void shouldChangeStatusToConfirmedForConfirm() {
-        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
-        
         var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
 
         when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment a = inv.getArgument(0);
             a.setId(appointmentId);
-            a.setStatus(AppointmentStatus.CONFIRMED);
-            a.setUpdatedAt(instantBaseDateTime);
             return a;
         });
 
@@ -464,7 +459,7 @@ class AppointmentServiceImplTest {
 
         assertEquals(AppointmentStatus.CONFIRMED, result.status());
         assertEquals(appointmentId, result.id());
-        assertEquals(instantBaseDateTime, result.updatedAt());
+        assertNotNull(result.updatedAt());
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
@@ -495,8 +490,6 @@ class AppointmentServiceImplTest {
 
     @Test
     void shouldChangeStatusToCancelledForCancel() {
-        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
-        
         var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.SCHEDULED).build();
 
         var request = new AppointmentCancelRequest("Medical issue");
@@ -505,9 +498,6 @@ class AppointmentServiceImplTest {
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment a = inv.getArgument(0);
             a.setId(appointmentId);
-            a.setStatus(AppointmentStatus.CANCELLED);
-            a.setCancelReason(request.cancelReason().trim());
-            a.setUpdatedAt(instantBaseDateTime);
             return a;
         });
 
@@ -515,7 +505,7 @@ class AppointmentServiceImplTest {
 
         assertEquals(AppointmentStatus.CANCELLED, result.status());
         assertEquals(appointmentId, result.id());
-        assertEquals(instantBaseDateTime, result.updatedAt());
+        assertNotNull(result.updatedAt());
         assertEquals("Medical issue", result.cancelReason());
         verify(appointmentRepository).save(any(Appointment.class));
     }
@@ -557,8 +547,6 @@ class AppointmentServiceImplTest {
 
     @Test
     void shouldChangeStatusToCompletedForComplete() {
-        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
-        
         var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.CONFIRMED).startAt(baseDateTime).build();    
 
         var request = new AppointmentCompleteRequest("Good progress");
@@ -567,9 +555,6 @@ class AppointmentServiceImplTest {
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment a = inv.getArgument(0);
             a.setId(appointmentId);
-            a.setStatus(AppointmentStatus.COMPLETED);
-            a.setObservations(request.observations().trim());
-            a.setUpdatedAt(instantBaseDateTime);
             return a;
         });
 
@@ -577,7 +562,7 @@ class AppointmentServiceImplTest {
 
         assertEquals(AppointmentStatus.COMPLETED, result.status());
         assertEquals(appointmentId, result.id());
-        assertEquals(instantBaseDateTime, result.updatedAt());
+        assertNotNull(result.updatedAt());
         assertEquals("Good progress", result.observations());
         verify(appointmentRepository).save(any(Appointment.class));
     }
@@ -618,16 +603,12 @@ class AppointmentServiceImplTest {
 
     @Test
     void shouldMarkStatusAsNoShowForMarkNoShow() {
-        var instantBaseDateTime = baseDateTime.toInstant(ZoneOffset.UTC);
-        
         var appointment = Appointment.builder().id(appointmentId).status(AppointmentStatus.CONFIRMED).startAt(baseDateTime).build();
 
         when(validator.validateAppointmentExists(appointmentId)).thenReturn(appointment);
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment a = inv.getArgument(0);
             a.setId(appointmentId);
-            a.setStatus(AppointmentStatus.NO_SHOW);
-            a.setUpdatedAt(instantBaseDateTime);
             return a;
         });
 
@@ -635,7 +616,7 @@ class AppointmentServiceImplTest {
 
         assertEquals(AppointmentStatus.NO_SHOW, result.status());
         assertEquals(appointmentId, result.id());
-        assertEquals(instantBaseDateTime, result.updatedAt());
+        assertNotNull(result.updatedAt());
         verify(appointmentRepository).save(any(Appointment.class));
     }
 

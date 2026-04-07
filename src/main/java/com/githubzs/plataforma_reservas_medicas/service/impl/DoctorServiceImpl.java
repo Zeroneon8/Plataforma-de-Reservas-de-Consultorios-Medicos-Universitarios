@@ -49,13 +49,13 @@ public class DoctorServiceImpl implements DoctorService {
         String normalizedLicenseNumber = request.licenseNumber().trim();
         String normalizedDocumentNumber = request.documentNumber().trim();
 
-        if (doctorRepository.existsByDocumentNumber(request.documentNumber())) {
+        if (doctorRepository.existsByDocumentNumber(normalizedDocumentNumber)) {
             throw new ConflictException("A doctor with the same document number already exists");
         }
-        if (doctorRepository.existsByLicenseNumber(request.licenseNumber())) {
+        if (doctorRepository.existsByLicenseNumber(normalizedLicenseNumber)) {
             throw new ConflictException("A doctor with the same license number already exists");
         }
-        if (doctorRepository.existsByEmailIgnoreCase(request.email())) {
+        if (doctorRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new ConflictException("A doctor with the same email already exists");
         }
 
