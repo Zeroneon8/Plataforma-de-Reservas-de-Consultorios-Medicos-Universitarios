@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -105,6 +106,7 @@ class PatientServiceImplTest {
         when(repository.existsByDocumentNumber("D12345")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(repository, never()).save(any(Patient.class));
     }
 
     @Test
@@ -114,6 +116,7 @@ class PatientServiceImplTest {
         when(repository.existsByEmailIgnoreCase("juan@example.com")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(repository, never()).save(any(Patient.class));
     }
 
     @Test
@@ -124,6 +127,7 @@ class PatientServiceImplTest {
         when(repository.existsByStudentCodeIgnoreCase("S12345")).thenReturn(true);
 
         assertThrows(ConflictException.class, () -> service.create(request));
+        verify(repository, never()).save(any(Patient.class));
     }
 
     @Test
@@ -157,6 +161,7 @@ class PatientServiceImplTest {
         when(repository.findById(patientId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.findById(patientId));
+        verify(repository, never()).save(any(Patient.class));
     }
 
     @Test

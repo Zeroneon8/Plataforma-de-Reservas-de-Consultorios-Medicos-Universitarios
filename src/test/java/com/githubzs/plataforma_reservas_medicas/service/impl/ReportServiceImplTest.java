@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -106,6 +107,8 @@ class ReportServiceImplTest {
         assertEquals(d2.getDoctorId(), results.get(1).doctorId());
         assertEquals(d2.getDoctorName(), results.get(1).doctorFullName());
         assertEquals(7L, results.get(1).completedAppointments());
+
+        verify(doctorRepository).rankDoctorsByCompletedAppointments();
     }
 
     @Test
@@ -144,6 +147,7 @@ class ReportServiceImplTest {
     void getOfficeOccupancyShouldThrowWhenFromIsNull() {
         LocalDate to = baseDate;
         assertThrows(NullPointerException.class, () -> service.getOfficeOccupancy(null, to));
+        verify(officeRepository, never()).calculateOfficeOccupancyBetween(any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
@@ -151,6 +155,7 @@ class ReportServiceImplTest {
         LocalDate from = baseDate.plusDays(5);
         LocalDate to = baseDate;
         assertThrows(IllegalArgumentException.class, () -> service.getOfficeOccupancy(from, to));
+        verify(officeRepository, never()).calculateOfficeOccupancyBetween(any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
 }
