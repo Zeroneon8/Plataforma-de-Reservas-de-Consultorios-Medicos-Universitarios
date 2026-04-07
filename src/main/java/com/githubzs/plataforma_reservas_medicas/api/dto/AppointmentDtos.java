@@ -62,7 +62,11 @@ public class AppointmentDtos {
         DoctorSummaryResponse doctor,
         LocalDateTime startAt,
         LocalDateTime endAt,
-        AppointmentStatus status
+        AppointmentStatus status,
+        String cancelReason,
+        String observations,
+        Instant createdAt,
+        Instant updatedAt
     ) implements Serializable {}
 
 }

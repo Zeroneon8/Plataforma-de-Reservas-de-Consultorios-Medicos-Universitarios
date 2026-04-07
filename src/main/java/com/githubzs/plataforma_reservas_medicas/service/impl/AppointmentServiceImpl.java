@@ -1,13 +1,12 @@
 package com.githubzs.plataforma_reservas_medicas.service.impl;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,20 +21,12 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Office;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Patient;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
-import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
-import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
-import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentTypeRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
-import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
-import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.AppointmentService;
-import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentMapper;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.service.validator.AppointmentValidator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,70 +35,31 @@ import lombok.RequiredArgsConstructor;
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final PatientRepository patientRepository;
-    private final DoctorRepository doctorRepository;
-    private final OfficeRepository officeRepository;
-    private final AppointmentTypeRepository appointmentTypeRepository;
-    private final DoctorScheduleService doctorScheduleService;
     private final AppointmentMapper mapper;
     private final AppointmentSummaryMapper summaryMapper;
+    private final AppointmentValidator validator;
 
     @Override
     @Transactional
     public AppointmentResponse create(AppointmentCreateRequest request) {
         Objects.requireNonNull(request, "Appointment create request is required");
 
-        // Validar que el paciente existe y está activo
-        Patient patient = patientRepository.findById(request.patientId())
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + request.patientId()));
-        if (patient.getStatus() != PatientStatus.ACTIVE) {
-            throw new ConflictException("Patient is not active");
-        }
+        Patient patient = validator.validatePatientExistsAndActive(request.patientId());
+        Doctor doctor = validator.validateDoctorExistsAndActive(request.doctorId());
+        Office office = validator.validateOfficeExistsAndAvailable(request.officeId());
+        AppointmentType appointmentType = validator.validateAppointmentTypeExists(request.appointmentTypeId());
 
-        // Validar que el doctor existe y está activo
-        Doctor doctor = doctorRepository.findById(request.doctorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + request.doctorId()));
-        if (doctor.getStatus() != DoctorStatus.ACTIVE) {
-            throw new ConflictException("Doctor is not active");
-        }
-
-        // Validar que el consultorio existe y está disponible
-        Office office = officeRepository.findById(request.officeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Office not found with id " + request.officeId()));
-        if (office.getStatus() != OfficeStatus.AVAILABLE) {
-            throw new ConflictException("Office is not available");
-        }
-
-        // Validar que el tipo de cita existe
-        AppointmentType appointmentType = appointmentTypeRepository.findById(request.appointmentTypeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment type not found with id " + request.appointmentTypeId()));
-
-        // Validar que la fecha/hora no es pasada
-        LocalDateTime now = LocalDateTime.now();
-        if (request.startAt().isBefore(now) || request.startAt().equals(now)) {
-            throw new ConflictException("Cannot create appointment in the past");
-        }
+        // Validar que la fecha de inicio no es pasada y es menor que la fecha de fin
+        validator.validateAppointmentStartAtEndAt(request.startAt(), request.startAt().plusMinutes(appointmentType.getDurationMinutes()));
 
         // Validar que la cita cae dentro del horario laboral del doctor
         LocalDateTime endAt = request.startAt().plusMinutes(appointmentType.getDurationMinutes());
-        if (!doctorScheduleService.isWithinSchedule(request.doctorId(), request.startAt(), endAt)) {
-            throw new ConflictException("Appointment is outside doctor's working hours");
-        }
+        validator.validateAppointmentWithinDoctorSchedule(request.doctorId(), request.startAt(), endAt);
 
-        // Validar que no existe traslape para el doctor
-        if (appointmentRepository.existsOverlapForDoctor(request.doctorId(), request.startAt(), endAt)) {
-            throw new ConflictException("Doctor has overlapping appointment");
-        }
-
-        // Validar que no existe traslape para el consultorio
-        if (appointmentRepository.existsOverlapForOffice(request.officeId(), request.startAt(), endAt)) {
-            throw new ConflictException("Office has overlapping appointment");
-        }
-
-        // Validar que el paciente no tiene dos citas activas que se crucen en el tiempo
-        if (appointmentRepository.existsOverlapForPatient(request.patientId(), request.startAt(), endAt)) {
-            throw new ConflictException("Patient has overlapping appointment");
-        }
+        // Validar disponibilidad de doctor, consultorio y paciente para el rango horario solicitado
+        validator.validateNoOverlapForDoctor(request.doctorId(), request.startAt(), endAt);
+        validator.validateNoOverlapForOffice(request.officeId(), request.startAt(), endAt);
+        validator.validateNoOverlapForPatient(request.patientId(), request.startAt(), endAt);
 
         // Crear la cita con estado inicial SCHEDULED
         Appointment appointment = mapper.toEntity(request);
@@ -128,28 +80,19 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional(readOnly = true)
     public AppointmentResponse findById(UUID id) {
         Objects.requireNonNull(id, "Appointment id is required");
-        return appointmentRepository.findById(id)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id " + id));
+
+        Appointment appointment = validator.validateAppointmentExists(id);
+
+        return mapper.toResponse(appointment);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponse> findAll(
-            UUID patientId,
-            UUID doctorId,
-            AppointmentStatus status,
-            LocalDate dateFrom,
-            LocalDate dateTo) {
+    public Page<AppointmentSummaryResponse> findAll(Pageable pageable) {
+        Pageable newPageable = pageable != null ? pageable : Pageable.unpaged();
 
-        LocalDateTime fromDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
-        LocalDateTime toDateTime   = dateTo   != null ? dateTo.atTime(LocalTime.MAX) : null;
-
-        return appointmentRepository
-                .findAllWithFilters(patientId, doctorId, status, fromDateTime, toDateTime)
-                .stream()
-                .map(summaryMapper::toSummaryResponse)
-                .toList();
+        return appointmentRepository.findAll(newPageable)
+                .map(summaryMapper::toSummaryResponse);
     }
 
     @Override
@@ -157,8 +100,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentSummaryResponse confirm(UUID id) {
         Objects.requireNonNull(id, "Appointment id is required");
 
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id " + id));
+        Appointment appointment = validator.validateAppointmentExists(id);
 
         // Solo una cita en estado SCHEDULED puede pasar a CONFIRMED
         if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
@@ -173,12 +115,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional
-    public AppointmentResponse cancel(UUID id, AppointmentCancelRequest request) {
+    public AppointmentSummaryResponse cancel(UUID id, AppointmentCancelRequest request) {
         Objects.requireNonNull(id, "Appointment id is required");
         Objects.requireNonNull(request, "Cancel request is required");
 
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id " + id));
+        Appointment appointment = validator.validateAppointmentExists(id);
 
         // Solo se pueden cancelar citas en estado SCHEDULED o CONFIRMED
         if (appointment.getStatus() != AppointmentStatus.SCHEDULED && 
@@ -191,17 +132,16 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return mapper.toResponse(saved);
+        return summaryMapper.toSummaryResponse(saved);
     }
 
     @Override
     @Transactional
-    public AppointmentResponse complete(UUID id, AppointmentCompleteRequestDto request) {
+    public AppointmentSummaryResponse complete(UUID id, AppointmentCompleteRequestDto request) {
         Objects.requireNonNull(id, "Appointment id is required");
         Objects.requireNonNull(request, "Complete request is required");
 
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id " + id));
+        Appointment appointment = validator.validateAppointmentExists(id);
 
         // Solo una cita CONFIRMED puede pasar a COMPLETED
         if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
@@ -218,7 +158,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setObservations(request.observations());
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return mapper.toResponse(saved);
+        return summaryMapper.toSummaryResponse(saved);
     }
 
     @Override
@@ -226,8 +166,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentSummaryResponse markNoShow(UUID id) {
         Objects.requireNonNull(id, "Appointment id is required");
 
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with id " + id));
+        Appointment appointment = validator.validateAppointmentExists(id);
 
         // Solo una cita CONFIRMED puede pasar a NO_SHOW
         if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {

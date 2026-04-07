@@ -38,7 +38,6 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
-import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentMapper;
 import com.githubzs.plataforma_reservas_medicas.service.mapper.AppointmentSummaryMapper;
@@ -220,7 +219,7 @@ class AppointmentServiceImplTest {
         updated.setStatus(AppointmentStatus.CONFIRMED);
         updated.setUpdatedAt(Instant.now());
 
-        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CONFIRMED);
+        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CONFIRMED, null, null, null, null);
 
         when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(updated);
@@ -246,13 +245,13 @@ class AppointmentServiceImplTest {
         updated.setCancelReason("Medical issue");
         updated.setUpdatedAt(Instant.now());
 
-        AppointmentResponse response = new AppointmentResponse(appointmentId, null, null, null, null, null, null, AppointmentStatus.CANCELLED, "Medical issue", null, null, null);
+        AppointmentSummaryResponse response = new AppointmentSummaryResponse(appointmentId, null, null, null, null, AppointmentStatus.CANCELLED, "Medical issue", null, null, null);
 
         when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(updated);
-        when(mapper.toResponse(updated)).thenReturn(response);
+        when(summaryMapper.toSummaryResponse(updated)).thenReturn(response);
 
-        AppointmentResponse result = service.cancel(appointmentId, request);
+        AppointmentSummaryResponse result = service.cancel(appointmentId, request);
 
         assertEquals(AppointmentStatus.CANCELLED, result.status());
         assertEquals("Medical issue", result.cancelReason());

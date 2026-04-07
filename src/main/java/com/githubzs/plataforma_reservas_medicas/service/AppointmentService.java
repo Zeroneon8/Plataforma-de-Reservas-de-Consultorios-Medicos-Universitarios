@@ -1,15 +1,15 @@
 package com.githubzs.plataforma_reservas_medicas.service;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequestDto;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 public interface AppointmentService {
 
@@ -17,13 +17,13 @@ public interface AppointmentService {
 
     AppointmentResponse findById(UUID id);
 
-    List<AppointmentSummaryResponse> findAll(UUID patientId,UUID doctorId,AppointmentStatus status,LocalDate dateFrom,LocalDate dateTo);
+    Page<AppointmentSummaryResponse> findAll(Pageable pageable);
 
     AppointmentSummaryResponse confirm(UUID id);
 
-    AppointmentResponse cancel(UUID id, AppointmentCancelRequest request);
+    AppointmentSummaryResponse cancel(UUID id, AppointmentCancelRequest request);
 
-    AppointmentResponse complete(UUID id, AppointmentCompleteRequestDto request);
+    AppointmentSummaryResponse complete(UUID id, AppointmentCompleteRequestDto request);
 
     AppointmentSummaryResponse markNoShow(UUID id);
     
