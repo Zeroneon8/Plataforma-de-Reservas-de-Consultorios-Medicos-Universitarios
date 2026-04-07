@@ -1,5 +1,7 @@
 package com.githubzs.plataforma_reservas_medicas.service.impl;
 
+
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -100,4 +102,5 @@ public class ReportServiceImpl implements ReportService {
                 .toList();
     }
 
+    
 }
