@@ -3,6 +3,9 @@ package com.githubzs.plataforma_reservas_medicas.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
@@ -15,7 +18,7 @@ public interface PatientService {
 
     PatientSummaryResponse findById(UUID id);
 
-    List<PatientSummaryResponse> findAll(); 
+    Page<PatientSummaryResponse> findAll(Pageable pageable); 
 
     PatientResponse update(UUID id, PatientUpdateRequest request); 
 

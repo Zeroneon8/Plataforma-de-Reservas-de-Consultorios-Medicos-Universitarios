@@ -1,12 +1,13 @@
 package com.githubzs.plataforma_reservas_medicas.service.impl;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
@@ -37,21 +38,36 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponse create(PatientCreateRequest request) {
         Objects.requireNonNull(request, "Patient create request is required");
 
-        if (patientRepository.existsByDocumentNumber(request.documentNumber())) {
+        // Normalizamos nombre, email, phoneNumber, documentNumber y studentCode
+        String normalizedName = request.fullName().trim();
+        String normalizedEmail = request.email().trim().toLowerCase();
+        String normalizedPhoneNumber = request.phoneNumber().trim();
+        String normalizedDocumentNumber = request.documentNumber().trim();
+        String normalizedStudentCode = request.studentCode() != null ? request.studentCode().trim() : null;
+
+        if (patientRepository.existsByDocumentNumber(normalizedDocumentNumber)) {
             throw new ConflictException("A patient with the same document number already exists");
         }
-        if (patientRepository.existsByEmailIgnoreCase(request.email())) {
+        if (patientRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new ConflictException("A patient with the same email already exists");
         }
-        if (request.studentCode() != null && !request.studentCode().isBlank() && patientRepository.existsByStudentCodeIgnoreCase(request.studentCode())) {
+        if (normalizedStudentCode != null && !normalizedStudentCode.isBlank() && patientRepository.existsByStudentCodeIgnoreCase(normalizedStudentCode)) {
             throw new ConflictException("A patient with the same student code already exists");
         }
 
         Patient patient = mapper.toEntity(request);
+        patient.setFullName(normalizedName);
+        patient.setEmail(normalizedEmail);
+        patient.setPhoneNumber(normalizedPhoneNumber);
+        patient.setDocumentNumber(normalizedDocumentNumber);
+        if (normalizedStudentCode != null && !normalizedStudentCode.isBlank()) {
+            patient.setStudentCode(normalizedStudentCode);
+        }
         patient.setStatus(PatientStatus.ACTIVE);
         patient.setCreatedAt(Instant.now());
         Patient saved = patientRepository.save(patient);
         return mapper.toResponse(saved);
+
     }
 
     @Override
@@ -65,10 +81,10 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PatientSummaryResponse> findAll() {
-        return patientRepository.findAll().stream()
-                .map(summaryMapper::toSummaryResponse)
-                .toList();
+    public Page<PatientSummaryResponse> findAll(Pageable pageable) {
+        Pageable finalPageable = pageable == null ? Pageable.ofSize(10) : pageable;
+        return patientRepository.findAll(finalPageable)
+                .map(summaryMapper::toSummaryResponse);
     }
 
     @Override
@@ -81,6 +97,21 @@ public class PatientServiceImpl implements PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
 
         mapper.patch(request, patient);
+
+        // Normalizamos fullName, email y phoneNumber si vienen en la request
+        if (request.fullName() != null) {
+            String normalizedName = request.fullName().trim();
+            patient.setFullName(normalizedName);
+        }
+        if (request.email() != null) {
+            String normalizedEmail = request.email().trim().toLowerCase();
+            patient.setEmail(normalizedEmail);
+        }
+        if (request.phoneNumber() != null) {
+            String normalizedPhoneNumber = request.phoneNumber().trim();
+            patient.setPhoneNumber(normalizedPhoneNumber);
+        }
+
         patient.setUpdatedAt(Instant.now());
         Patient saved = patientRepository.save(patient);
         return mapper.toResponse(saved);
@@ -91,9 +122,6 @@ public class PatientServiceImpl implements PatientService {
     public PatientResponse changeStatus(UUID id, PatientStatus status) {
         Objects.requireNonNull(id, "Patient id is required");
         Objects.requireNonNull(status, "Patient status is required");
-        if (status != PatientStatus.ACTIVE && status != PatientStatus.INACTIVE && status != PatientStatus.SUSPENDED) {
-            throw new ConflictException("Patient status can only be changed to ACTIVE, INACTIVE or SUSPENDED");
-        }
 
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
@@ -103,7 +131,5 @@ public class PatientServiceImpl implements PatientService {
         Patient saved = patientRepository.save(patient);
         return mapper.toResponse(saved);
     }
-
-
 
 }

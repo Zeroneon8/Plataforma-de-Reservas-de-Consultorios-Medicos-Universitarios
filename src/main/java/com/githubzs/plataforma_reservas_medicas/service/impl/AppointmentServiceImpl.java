@@ -186,7 +186,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
-        appointment.setObservations(request.observations().trim());
+        if (request.observations() != null && !request.observations().isBlank()) {
+            appointment.setObservations(request.observations().trim());
+        }
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
         return summaryMapper.toSummaryResponse(saved);

@@ -26,7 +26,8 @@ public class PatientDtos {
         String phoneNumber, 
         @NotBlank
         @Size(max = 50)
-        String documentNumber, 
+        String documentNumber,
+        @Size(max = 50) 
         String studentCode
     ) implements Serializable {}
 
