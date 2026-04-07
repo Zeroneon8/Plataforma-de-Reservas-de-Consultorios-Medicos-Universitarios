@@ -12,6 +12,8 @@ Este proyecto implementa una API REST para la gestión integral de citas médica
 
 La aplicación está construida con arquitectura por capas (repository → service), base de datos relacional PostgreSQL y un conjunto completo de pruebas automatizadas con Testcontainers, JUnit 5 y Mockito.
 
+> **Nota:** La capa de controladores REST no fue implementada en esta entrega. Los DTOs de request/response están definidos en el paquete `api/dto` pero no hay endpoints expuestos. La lógica de negocio está completa en los servicios.
+
 ---
 
 ## 2. Stack tecnológico
@@ -36,20 +38,14 @@ Paquete base: `com.githubzs.plataforma_reservas_medicas`
 
 | Paquete | Contenido |
 |---|---|
-<<<<<<< HEAD
 | `api/dto` | DTOs de request y response agrupados por entidad (AppointmentDtos, DoctorDtos, etc.) |
 | `domine/entities` | Entidades JPA (Patient, Doctor, Office, Appointment, Specialty, AppointmentType, DoctorSchedule) |
-=======
-| `api/dto` | DTOs de request y response agrupados por entidad |
-| `domine/entities` | Entidades JPA (Patient, Doctor, Office, Appointment, etc.) |
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 | `domine/enums` | Enumeraciones (AppointmentStatus, PatientStatus, DoctorStatus, OfficeStatus) |
 | `domine/repositories` | Interfaces JPA con query methods y JPQL |
 | `domine/dto` | DTOs internos usados en proyecciones JPQL (StatsDto, RankingDto, etc.) |
 | `service` | Interfaces de servicio con el contrato público de cada módulo |
 | `service/impl` | Implementaciones de servicios con toda la lógica de negocio |
 | `service/mapper` | Interfaces MapStruct para conversión entidad ↔ DTO |
-<<<<<<< HEAD
 | `exception` | Excepciones personalizadas (ConflictException, ResourceNotFoundException) y GlobalExceptionHandler |
 
 ---
@@ -98,21 +94,11 @@ Paquete base: `com.githubzs.plataforma_reservas_medicas`
 ## 6. Ejecución del proyecto
 
 ### 6.1 Requisitos previos
-=======
-| `exception` | Excepciones personalizadas y GlobalExceptionHandler |
-
----
-
-## 4. Ejecución del proyecto
-
-### 4.1 Requisitos previos
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Java 21 instalado y configurado en PATH
 - Docker Desktop instalado y en ejecución
 - Maven 3.9+ (o usar el wrapper incluido `./mvnw`)
 
-<<<<<<< HEAD
 ### 6.2 Base de datos
 
 La base de datos de desarrollo debe ser una instancia PostgreSQL accesible localmente. Configura las variables en `src/main/resources/application.yaml`:
@@ -126,24 +112,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-=======
-### 4.2 Base de datos
-
-La base de datos de desarrollo debe ser una instancia PostgreSQL accesible localmente. Configura las variables en `src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/<nombre_base_de_datos>
-spring.datasource.username=<tu_usuario>
-spring.datasource.password=<tu_contraseña>
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 ```
 
 El nombre de la base de datos, usuario y contraseña pueden variar por desarrollador. Cada integrante debe configurar su propio entorno local.
 
-<<<<<<< HEAD
 ### 6.3 Compilar y ejecutar
-=======
-### 4.3 Compilar y ejecutar
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 ```bash
 ./mvnw clean install -DskipTests
 ./mvnw spring-boot:run
@@ -151,15 +124,9 @@ El nombre de la base de datos, usuario y contraseña pueden variar por desarroll
 
 ---
 
-<<<<<<< HEAD
 ## 7. Pruebas automatizadas
 
 ### 7.1 Configuración de Testcontainers
-=======
-## 5. Pruebas automatizadas
-
-### 5.1 Configuración de Testcontainers
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 Las pruebas de integración utilizan Testcontainers para levantar automáticamente un contenedor PostgreSQL real durante la ejecución. No es necesario tener una base de datos local configurada para correr los tests — solo Docker Desktop debe estar activo.
 
@@ -172,16 +139,11 @@ PostgreSQLContainer postgresContainer() {
 }
 ```
 
-<<<<<<< HEAD
 ### 7.2 Ejecutar las pruebas
-=======
-### 5.2 Ejecutar las pruebas
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 ```bash
 ./mvnw test
 ```
 
-<<<<<<< HEAD
 ### 7.3 Cobertura de pruebas
 
 | Tipo de prueba | Clases cubiertas |
@@ -195,20 +157,6 @@ PostgreSQLContainer postgresContainer() {
 ## 8. Reglas de negocio implementadas
 
 ### 8.1 Creación de citas
-=======
-### 5.3 Cobertura de pruebas
-
-| Tipo de prueba | Clases cubiertas |
-|---|---|
-| Integration tests (Repository) | PatientRepositoryIntegrationTest, DoctorRepositoryIntegrationTest, DoctorScheduleRepositoryIntegrationTest, AppointmentRepositoryIntegrationTest, OfficeRepositoryIntegrationTest |
-| Unit tests (Service) | AppointmentServiceImplTest, AvailabilityServiceImplTest, DoctorScheduleServiceImplTest |
-
----
-
-## 6. Reglas de negocio implementadas
-
-### 6.1 Creación de citas
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - El paciente debe existir y estar en estado `ACTIVE`.
 - El doctor debe existir y estar en estado `ACTIVE`.
@@ -221,55 +169,34 @@ PostgreSQLContainer postgresContainer() {
 - Un paciente no puede tener dos citas activas que se crucen en el tiempo.
 - Toda cita nueva se crea con estado inicial `SCHEDULED`.
 
-<<<<<<< HEAD
 ### 8.2 Confirmación — `SCHEDULED → CONFIRMED`
-=======
-### 6.2 Confirmación — `SCHEDULED → CONFIRMED`
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Solo una cita en estado `SCHEDULED` puede pasar a `CONFIRMED`.
 - No se puede confirmar una cita `CANCELLED`, `COMPLETED` o `NO_SHOW`.
 - La confirmación actualiza el campo `updatedAt`.
 
-<<<<<<< HEAD
 ### 8.3 Cancelación — `SCHEDULED | CONFIRMED → CANCELLED`
-=======
-### 6.3 Cancelación — `SCHEDULED | CONFIRMED → CANCELLED`
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Solo se pueden cancelar citas en estado `SCHEDULED` o `CONFIRMED`.
 - No se puede cancelar una cita `COMPLETED` ni `NO_SHOW`.
 - El motivo de cancelación es obligatorio (campo `cancelReason`).
 
-<<<<<<< HEAD
 ### 8.4 Finalización — `CONFIRMED → COMPLETED`
-=======
-### 6.4 Finalización — `CONFIRMED → COMPLETED`
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Solo una cita `CONFIRMED` puede pasar a `COMPLETED`.
 - No se puede completar una cita si la hora actual es anterior al inicio programado.
 - Se pueden registrar observaciones administrativas al finalizar.
 
-<<<<<<< HEAD
 ### 8.5 No asistencia — `CONFIRMED → NO_SHOW`
-=======
-### 6.5 No asistencia — `CONFIRMED → NO_SHOW`
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Solo una cita `CONFIRMED` puede pasar a `NO_SHOW`.
 - No se puede marcar como `NO_SHOW` antes de la hora de inicio programada.
 
-<<<<<<< HEAD
 ### 8.6 Disponibilidad
-=======
-### 6.6 Disponibilidad
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
 
 - Los slots disponibles se calculan combinando el horario laboral del doctor, las citas existentes activas y la duración del tipo de cita.
 - Solo se devuelven bloques completos y libres; no horas aproximadas.
 
-<<<<<<< HEAD
 ### 8.7 Gestión de estados
 
 - **Pacientes**: Solo pacientes `ACTIVE` pueden agendar citas. Estados: `ACTIVE`, `SUSPENDED`, `INACTIVE`.
@@ -312,54 +239,12 @@ Se implementan excepciones específicas (`ConflictException` para conflictos de 
 
 Todas las entidades usan `UUID` como clave primaria para evitar colisiones en entornos distribuidos y mejorar la seguridad al no exponer secuencias predecibles.
 
----
+### 9.9 DTOs por niveles para evitar dependencia circular
 
-## 10. API REST (Pendiente de implementación)
-
-La capa de controladores REST aún no está implementada. Los DTOs de request/response están definidos en el paquete `api/dto` pero no hay endpoints expuestos. La lógica de negocio está completa en los servicios.
+Cada entidad del dominio cuenta con tres tipos de DTO diferenciados: `CreateRequest` para la entrada de datos, `Response` completo para la respuesta detallada de su propio módulo, y `SummaryResponse` para ser embebido dentro de las respuestas de otras entidades. Por ejemplo, `AppointmentResponse` no contiene un `PatientResponse` completo sino un `PatientSummaryResponse` con solo los campos esenciales. Esto elimina la dependencia circular entre mappers y evita que el grafo de objetos se serialice de forma recursiva o infinita.
 
 ---
 
-## 11. Contribución
-
-1. Clona el repositorio
-2. Crea una rama para tu feature: `git checkout -b feature/nueva-funcionalidad`
-3. Implementa los cambios siguiendo la arquitectura por capas
-4. Agrega pruebas unitarias e integración para nueva funcionalidad
-5. Ejecuta `./mvnw test` para verificar que todo pasa
-6. Crea un Pull Request con descripción detallada
-
----
-
-## 12. Licencia
+## 10. Licencia
 
 Proyecto educativo - No aplica licencia comercial.
-=======
----
-
-## 7. Decisiones de diseño
-
-### 7.1 Separación de responsabilidades
-
-Cada capa tiene responsabilidades claramente delimitadas. Los DTOs con anotaciones `@NotNull` y `@NotBlank` validan la forma estructural del dato (presencia, formato). Los servicios validan exclusivamente lógica de negocio (existencia en base de datos, estado de entidades, traslapes, reglas de flujo). No se duplican validaciones entre capas.
-
-### 7.2 Borrado lógico
-
-Ninguna entidad se elimina físicamente de la base de datos. Pacientes, doctores y consultorios manejan estados (`ACTIVE/INACTIVE`, `AVAILABLE/UNAVAILABLE`). Las citas manejan un ciclo de vida completo vía transiciones de estado. Esto garantiza trazabilidad y consistencia del historial médico.
-
-### 7.3 Cálculo de `endAt` en el servidor
-
-El campo `endAt` de cada cita nunca es enviado por el cliente. El servicio lo calcula internamente como `startAt + durationMinutes` del `AppointmentType` seleccionado. Esto evita inconsistencias y garantiza que la duración siempre corresponde al tipo de cita configurado.
-
-### 7.4 MapStruct para mapeos
-
-Se usa MapStruct para la conversión entre entidades y DTOs. Los mappers complejos (`AppointmentMapper`, `AppointmentSummaryMapper`) delegan a submappers específicos (`PatientSummaryMapper`, `DoctorSummaryMapper`, `OfficeSummaryMapper`) para mantener cada mapper con una responsabilidad única.
-
-### 7.5 Proyecciones JPQL con DTOs internos
-
-Las queries de agregación y reportes (ocupación de consultorios, ranking de doctores, inasistencias por paciente) retornan proyecciones a DTOs internos del dominio (`OfficeOccupancyDto`, `DoctorRankingStatsDto`, `PatientNoShowStatsDto`). El servicio transforma esos DTOs internos a los DTOs de respuesta pública.
-
-### 7.6 Testcontainers con `@ServiceConnection`
-
-Las pruebas de integración usan `@ServiceConnection` de Spring Boot junto con Testcontainers. Esto elimina la necesidad de configurar manualmente las propiedades de conexión en los tests — el contenedor PostgreSQL levantado por Testcontainers se conecta automáticamente al contexto de prueba.
->>>>>>> 934024454759c11ac590ea33e0f21cf912346458
