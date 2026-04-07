@@ -20,9 +20,9 @@ public interface OfficeRepository extends JpaRepository<Office, UUID> {
 
     Page<Office> findByStatus(OfficeStatus status, Pageable pageable);
 
-        boolean existsByNameIgnoreCase(String name); // Para validar unicidad de nombre
+    boolean existsByNameIgnoreCase(String name); // Para validar unicidad de nombre
         
-        boolean existsByRoomNumber(String roomNumber); // Para validar unicidad de número de consultorio
+    boolean existsByRoomNumber(int roomNumber); // Para validar unicidad de número de consultorio
 
     // Calcular ocupación de las oficinas en un rango de fechas (muestra tanto la cantidad de citas como la duración total de las mismas, y la cantidad de no-shows)
     @Query("""
