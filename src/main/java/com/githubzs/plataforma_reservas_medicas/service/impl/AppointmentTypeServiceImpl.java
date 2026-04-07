@@ -28,11 +28,19 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
     private final AppointmentTypeMapper mapper;
     private final AppointmentTypeSummaryMapper summaryMapper;
 
-
     @Override
     @Transactional
     public AppointmentTypeResponse create(AppointmentTypeCreateRequest request) {
         Objects.requireNonNull(request, "Appointment type request is required");
+
+        int duration = request.durationMinutes();
+        if (duration <= 0) {
+            throw new IllegalArgumentException("Duration must be a positive integer");
+        }
+        else if (duration > 480) {
+            throw new IllegalArgumentException("Duration cannot exceed 480 minutes (8 hours)");
+        }
+
         String name = request.name();
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Appointment type name is required");
@@ -45,6 +53,8 @@ public class AppointmentTypeServiceImpl implements AppointmentTypeService {
 
         AppointmentType appointmentType = mapper.toEntity(request);
         appointmentType.setName(normalizedName);
+        appointmentType.setDurationMinutes(duration);
+        appointmentType.setDescription(request.description().trim());
         AppointmentType saved = repository.save(appointmentType);
         return mapper.toResponse(saved);
     }

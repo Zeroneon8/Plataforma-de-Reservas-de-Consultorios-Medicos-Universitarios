@@ -128,7 +128,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // La cancelación debe registrar un motivo obligatorio
-        appointment.setCancelReason(request.cancelReason());
+        appointment.setCancelReason(request.cancelReason().trim());
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
@@ -155,7 +155,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         appointment.setStatus(AppointmentStatus.COMPLETED);
-        appointment.setObservations(request.observations());
+        appointment.setObservations(request.observations().trim());
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
         return summaryMapper.toSummaryResponse(saved);
