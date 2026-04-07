@@ -74,12 +74,14 @@ public class OfficeServiceImpl implements OfficeService {
         Office office = officeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Office not found with id " + id));
 
+        String originalName = office.getName();
+
         mapper.patch(request, office);
 
         // Normalizamos el nombre, la ubicación y la descripción si vienen en la request
         if (request.name() != null) {
             String normalizedName = request.name().trim();
-            if (!normalizedName.equalsIgnoreCase(office.getName()) && officeRepository.existsByNameIgnoreCase(normalizedName)) {
+            if (!normalizedName.equalsIgnoreCase(originalName) && officeRepository.existsByNameIgnoreCase(normalizedName)) {
                 throw new ConflictException("An office with the same name already exists");
             }
             office.setName(normalizedName);
