@@ -20,7 +20,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorCreateR
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
-import com.githubzs.plataforma_reservas_medicas.service.DoctorService;
+import com.githubzs.plataforma_reservas_medicas.services.DoctorService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

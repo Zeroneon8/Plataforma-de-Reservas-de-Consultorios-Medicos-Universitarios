@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.DoctorProductivityResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.NoShowPatientResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.OfficeOccupancyResponse;
-import com.githubzs.plataforma_reservas_medicas.service.ReportService;
+import com.githubzs.plataforma_reservas_medicas.services.ReportService;
 
 import lombok.RequiredArgsConstructor;
 

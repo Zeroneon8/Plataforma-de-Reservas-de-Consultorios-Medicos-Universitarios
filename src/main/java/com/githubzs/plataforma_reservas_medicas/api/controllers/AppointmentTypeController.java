@@ -14,7 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.service.AppointmentTypeService;
+import com.githubzs.plataforma_reservas_medicas.services.AppointmentTypeService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

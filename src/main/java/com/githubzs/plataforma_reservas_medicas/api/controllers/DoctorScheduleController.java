@@ -16,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.DoctorScheduleSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.service.DoctorScheduleService;
+import com.githubzs.plataforma_reservas_medicas.services.DoctorScheduleService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

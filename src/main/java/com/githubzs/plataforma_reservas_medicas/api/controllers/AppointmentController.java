@@ -23,7 +23,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.Appointm
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.service.AppointmentService;
+import com.githubzs.plataforma_reservas_medicas.services.AppointmentService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

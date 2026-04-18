@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AvailabilityDtos.AvailabilitySlotResponse;
-import com.githubzs.plataforma_reservas_medicas.service.AvailabilityService;
+import com.githubzs.plataforma_reservas_medicas.services.AvailabilityService;
 
 import lombok.RequiredArgsConstructor;
 

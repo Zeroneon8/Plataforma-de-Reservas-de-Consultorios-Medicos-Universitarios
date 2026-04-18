@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtySummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.service.SpecialtyService;
+import com.githubzs.plataforma_reservas_medicas.services.SpecialtyService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

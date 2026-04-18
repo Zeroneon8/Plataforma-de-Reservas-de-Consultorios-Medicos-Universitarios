@@ -18,7 +18,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeCreateR
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeUpdateRequest;
-import com.githubzs.plataforma_reservas_medicas.service.OfficeService;
+import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
