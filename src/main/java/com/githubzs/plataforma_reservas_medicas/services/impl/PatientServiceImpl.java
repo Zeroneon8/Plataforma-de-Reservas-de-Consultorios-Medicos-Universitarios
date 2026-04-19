@@ -1,8 +1,8 @@
 package com.githubzs.plataforma_reservas_medicas.services.impl;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,9 +18,11 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.PatientService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,7 +38,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional
     public PatientResponse create(PatientCreateRequest request) {
-        Objects.requireNonNull(request, "Patient create request is required");
+        if (request == null) {
+            throw new ValidationException("Patient create request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         // Normalizamos nombre, email, phoneNumber, documentNumber y studentCode
         String normalizedName = request.fullName().trim();
@@ -73,7 +78,10 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional(readOnly = true)
     public PatientSummaryResponse findById(UUID id) {
-        Objects.requireNonNull(id, "Patient id is required");
+        if (id == null) {
+            throw new ValidationException("Patient id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
         return patientRepository.findById(id)
                 .map(summaryMapper::toSummaryResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
@@ -90,8 +98,14 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional
     public PatientResponse update(UUID id, PatientUpdateRequest request) {
-        Objects.requireNonNull(id, "Patient id is required");
-        Objects.requireNonNull(request, "Patient update request is required");
+        if (id == null) {
+            throw new ValidationException("Patient id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
+        if (request == null) {
+            throw new ValidationException("Patient update request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
@@ -120,8 +134,14 @@ public class PatientServiceImpl implements PatientService {
     @Override
     @Transactional
     public PatientResponse changeStatus(UUID id, PatientStatus status) {
-        Objects.requireNonNull(id, "Patient id is required");
-        Objects.requireNonNull(status, "Patient status is required");
+        if (id == null) {
+            throw new ValidationException("Patient id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
+        if (status == null) {
+            throw new ValidationException("Patient status is required",
+                List.of(new FieldViolation("status", "is required")));
+        }
 
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));

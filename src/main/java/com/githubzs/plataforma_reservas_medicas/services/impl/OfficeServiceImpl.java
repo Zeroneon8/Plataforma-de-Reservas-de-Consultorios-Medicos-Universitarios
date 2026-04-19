@@ -3,7 +3,6 @@ package com.githubzs.plataforma_reservas_medicas.services.impl;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +21,8 @@ import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundExcept
 import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,7 +37,11 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional
     public OfficeResponse create(OfficeCreateRequest request) {
-        Objects.requireNonNull(request, "Office create request is required");
+        if (request == null) {
+            throw new ValidationException("Office create request is required",
+                    List.of(new FieldViolation("request", "is required"))
+            );
+        }
 
         // Normalizamos el nombre, la ubicación y la descripción si existe en la request
         String normalizedName = request.name().trim();
@@ -68,8 +73,16 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional
     public OfficeResponse update(UUID id, OfficeUpdateRequest request) {
-        Objects.requireNonNull(id, "Office id is required");
-        Objects.requireNonNull(request, "Office update request is required");
+        if (id == null) {
+            throw new ValidationException("Office id is required",
+                    List.of(new FieldViolation("id", "is required"))
+            );
+        }
+        if (request == null) {
+            throw new ValidationException("Office update request is required",
+                    List.of(new FieldViolation("request", "is required"))
+            );
+        }
 
         Office office = officeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Office not found with id " + id));
@@ -103,7 +116,11 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional(readOnly = true)
     public Page<OfficeSummaryResponse> findByStatus(OfficeStatus status, Pageable pageable) {
-        Objects.requireNonNull(status, "Office status is required");
+        if (status == null) {
+            throw new ValidationException("Office status is required",
+                    List.of(new FieldViolation("status", "is required"))
+            );
+        }
 
         Pageable finalPageable = pageable == null ? Pageable.ofSize(10) : pageable;
         return officeRepository.findByStatus(status, finalPageable).map(summaryMapper::toSummaryResponse);
@@ -112,7 +129,11 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional(readOnly = true)
     public OfficeSummaryResponse findById(UUID officeId) {
-        Objects.requireNonNull(officeId, "Office id is required");
+        if (officeId == null) {
+            throw new ValidationException("Office id is required",
+                    List.of(new FieldViolation("id", "is required"))
+            );
+        }
 
         return officeRepository.findById(officeId)
                 .map(summaryMapper::toSummaryResponse)
@@ -122,8 +143,16 @@ public class OfficeServiceImpl implements OfficeService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByIdAndStatus(UUID id, OfficeStatus status) {
-        Objects.requireNonNull(id, "Office id is required");
-        Objects.requireNonNull(status, "Office status is required");
+        if (id == null) {
+            throw new ValidationException("Office id is required",
+                    List.of(new FieldViolation("id", "is required"))
+            );
+        }
+        if (status == null) {
+            throw new ValidationException("Office status is required",
+                    List.of(new FieldViolation("status", "is required"))
+            );
+        }
 
         return officeRepository.existsByIdAndStatus(id, status);
     }

@@ -2,8 +2,7 @@ package com.githubzs.plataforma_reservas_medicas.services.impl;
 
 import java.time.Instant;
 import java.util.UUID;
-import java.util.Objects;
-
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,9 +19,11 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.DoctorService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,7 +39,11 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional
     public DoctorResponse create(DoctorCreateRequest request) {
-        Objects.requireNonNull(request, "Doctor create request is required");
+        if (request == null) {
+            throw new ValidationException("Doctor create request is required",
+                    List.of(new FieldViolation("request", "is required"))
+            );
+        }
         
         Specialty specialty = specialtyRepository.findById(request.specialtyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Specialty not found with id " + request.specialtyId()));
@@ -82,7 +87,10 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional(readOnly = true)
     public DoctorSummaryResponse findById(UUID doctorId) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
 
         return doctorRepository.findById(doctorId)
                 .map(summaryMapper::toSummaryResponse)
@@ -92,7 +100,10 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional(readOnly = true)
     public Page<DoctorSummaryResponse> findActiveBySpecialty(UUID specialtyId, Pageable pageable) {
-        Objects.requireNonNull(specialtyId, "Specialty id is required");
+        if (specialtyId == null) {
+            throw new ValidationException("Specialty id is required",
+                List.of(new FieldViolation("specialtyId", "is required")));
+        }
 
         if (!specialtyRepository.existsById(specialtyId)) {
             throw new ResourceNotFoundException("Specialty not found with id " + specialtyId);
@@ -106,7 +117,10 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional(readOnly = true)
     public Page<DoctorSummaryResponse> findBySpecialty(UUID specialtyId, Pageable pageable) {
-        Objects.requireNonNull(specialtyId, "Specialty id is required");
+        if (specialtyId == null) {
+            throw new ValidationException("Specialty id is required",
+                List.of(new FieldViolation("specialtyId", "is required")));
+        }
 
         if (!specialtyRepository.existsById(specialtyId)) {
             throw new ResourceNotFoundException("Specialty not found with id " + specialtyId);
@@ -120,8 +134,14 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional
     public DoctorResponse update(UUID doctorId, DoctorUpdateRequest request) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(request, "Doctor update request is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (request == null) {
+            throw new ValidationException("Doctor update request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
@@ -154,8 +174,14 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     @Transactional
     public DoctorSummaryResponse changeStatus(UUID doctorId, DoctorStatus status) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(status, "Doctor status is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (status == null) {
+            throw new ValidationException("Doctor status is required",
+                List.of(new FieldViolation("status", "is required")));
+        }
 
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));

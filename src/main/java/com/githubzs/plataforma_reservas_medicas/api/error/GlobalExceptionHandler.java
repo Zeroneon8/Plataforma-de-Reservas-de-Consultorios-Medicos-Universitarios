@@ -24,6 +24,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException exception, WebRequest request) {
+        var body = ErrorResponse.of(HttpStatus.UNPROCESSABLE_CONTENT, exception.getMessage(), request.getDescription(false), exception.getViolations());
+        return ResponseEntity.unprocessableContent().body(body);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception, WebRequest request) {
+        var body = ErrorResponse.of(HttpStatus.BAD_REQUEST, exception.getMessage(), request.getDescription(false), List.of());
+        return ResponseEntity.badRequest().body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, WebRequest req) {
         var violations = ex.getBindingResult().getFieldErrors()

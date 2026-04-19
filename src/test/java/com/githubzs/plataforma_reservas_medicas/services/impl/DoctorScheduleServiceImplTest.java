@@ -35,6 +35,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorScheduleMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorScheduleSummaryMapperImpl;
 
@@ -115,15 +116,15 @@ class DoctorScheduleServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenDoctorIdIsNullForCreate() {
+    void shouldThrowValidationExceptionWhenDoctorIdIsNullForCreate() {
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 0));
 
-        assertThrows(NullPointerException.class, () -> service.create(null, request));
+        assertThrows(ValidationException.class, () -> service.create(null, request));
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(doctorId, null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(doctorId, null));
     }
 
     @Test
@@ -148,35 +149,35 @@ class DoctorScheduleServiceImplTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentWhenDayOfWeekIsNullForCreate() {
+    void shouldThrowValidationExceptionWhenDayOfWeekIsNullForCreate() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(null, LocalTime.of(8, 0), LocalTime.of(12, 0));
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(doctorId, request));
+        assertThrows(ValidationException.class, () -> service.create(doctorId, request));
         verify(scheduleRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowIllegalArgumentWhenStartOrEndIsNullForCreate() {
+    void shouldThrowValidationExceptionWhenStartOrEndIsNullForCreate() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), null);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(doctorId, request));
+        assertThrows(ValidationException.class, () -> service.create(doctorId, request));
         verify(scheduleRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowConflictWhenStartTimeIsNotBeforeEndTimeForCreate() {
+    void shouldThrowValidationExceptionWhenStartTimeIsNotBeforeEndTimeForCreate() {
         Doctor doctor = Doctor.builder().id(doctorId).status(DoctorStatus.ACTIVE).build();
         DoctorScheduleCreateRequest request = new DoctorScheduleCreateRequest(DayOfWeek.MONDAY, LocalTime.of(12, 0), LocalTime.of(8, 0));
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
 
-        assertThrows(ConflictException.class, () -> service.create(doctorId, request));
+        assertThrows(ValidationException.class, () -> service.create(doctorId, request));
         verify(scheduleRepository, never()).save(any());
     }
 
@@ -265,13 +266,13 @@ class DoctorScheduleServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenDoctorIdIsNullForFindByDoctorAndDay() {
-        assertThrows(NullPointerException.class, () -> service.findByDoctorAndDay(null, DayOfWeek.MONDAY));
+    void shouldThrowValidationExceptionWhenDoctorIdIsNullForFindByDoctorAndDay() {
+        assertThrows(ValidationException.class, () -> service.findByDoctorAndDay(null, DayOfWeek.MONDAY));
     }
 
     @Test
-    void shouldThrowNPEWhenDayIsNullForFindByDoctorAndDay() {
-        assertThrows(NullPointerException.class, () -> service.findByDoctorAndDay(doctorId, null));
+    void shouldThrowValidationExceptionWhenDayIsNullForFindByDoctorAndDay() {
+        assertThrows(ValidationException.class, () -> service.findByDoctorAndDay(doctorId, null));
     }
 
     @Test

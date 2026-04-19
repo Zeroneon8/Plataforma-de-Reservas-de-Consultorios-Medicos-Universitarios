@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +22,8 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentT
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 import com.githubzs.plataforma_reservas_medicas.services.AvailabilityService;
 
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,14 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override
     @Transactional(readOnly = true)
     public List<AvailabilitySlotResponse> getAvailableSlots(UUID doctorId, LocalDate date) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(date, "Date is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (date == null) {
+            throw new ValidationException("Date is required",
+                List.of(new FieldViolation("date", "is required")));
+        }
 
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
@@ -80,9 +87,18 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override
     @Transactional(readOnly = true)
     public List<AvailabilitySlotResponse> getAvailableSlotsForAppointmentType (UUID doctorId, LocalDate date, UUID appointmentTypeId) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(date, "Date is required");
-        Objects.requireNonNull(appointmentTypeId, "Appointment type id is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (date == null) {
+            throw new ValidationException("Date is required",
+                List.of(new FieldViolation("date", "is required")));
+        }
+        if (appointmentTypeId == null) {
+            throw new ValidationException("Appointment type id is required",
+                List.of(new FieldViolation("appointmentTypeId", "is required")));
+        }
 
         AppointmentType appointmentType = appointmentTypeRepository.findById(appointmentTypeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment type not found with id " + appointmentTypeId));
@@ -90,15 +106,17 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         int durationMinutes = appointmentType.getDurationMinutes();
 
         if (durationMinutes <= 0) {
-            throw new IllegalArgumentException("Appointment type duration must be greater than 0");
+            throw new ValidationException("Invalid appointment type duration",
+                List.of(new FieldViolation("durationMinutes", "must be a positive integer")));
         }
         else if (durationMinutes > 480) {
-            throw new IllegalArgumentException("Appointment type duration is too long");
+            throw new ValidationException("Invalid appointment type duration",
+                List.of(new FieldViolation("durationMinutes", "must be less than or equal to 480")));
         }
 
 
         List<AvailabilitySlotResponse> freeSlots = getAvailableSlots(doctorId, date);
-        List<AvailabilitySlotResponse> avaibleSlots = new ArrayList<>();
+        List<AvailabilitySlotResponse> availableSlots = new ArrayList<>();
 
         for (AvailabilitySlotResponse free : freeSlots) {
             LocalDateTime pivot = LocalDateTime.of(free.date(), free.slotStart());
@@ -106,7 +124,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
             while (!pivot.plusMinutes(durationMinutes).isAfter(freeEnd)) {
                 LocalDateTime chunkEnd = pivot.plusMinutes(durationMinutes);
-                avaibleSlots.add(new AvailabilitySlotResponse(
+                availableSlots.add(new AvailabilitySlotResponse(
                         free.date(),
                         pivot.toLocalTime(),
                         chunkEnd.toLocalTime()
@@ -115,8 +133,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             }
         }
         
-        sortSlots(avaibleSlots);
-        return avaibleSlots;
+        sortSlots(availableSlots);
+        return availableSlots;
     }
 
     private List<TimeRange> subtractAppointments(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, List<Appointment> appointments) {

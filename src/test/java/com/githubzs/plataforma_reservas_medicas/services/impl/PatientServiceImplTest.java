@@ -28,6 +28,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientSummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientMapperImpl;
 
@@ -131,8 +132,8 @@ class PatientServiceImplTest {
     }
 
     @Test
-    void shouldThrowNpeWhenCreateRequestIsNull() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenCreateRequestIsNull() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test

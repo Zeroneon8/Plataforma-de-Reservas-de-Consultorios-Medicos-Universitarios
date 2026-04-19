@@ -36,6 +36,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientSummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtySummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentMapperImpl;
@@ -166,8 +167,8 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test
@@ -464,8 +465,8 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForConfirm() {
-        assertThrows(NullPointerException.class, () -> service.confirm(null));
+    void shouldThrowValidationExceptionWhenIdIsNullForConfirm() {
+        assertThrows(ValidationException.class, () -> service.confirm(null));
     }
 
     @Test
@@ -511,14 +512,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForCancel() {
+    void shouldThrowValidationExceptionWhenIdIsNullForCancel() {
         var request = new AppointmentCancelRequest("Reason");
-        assertThrows(NullPointerException.class, () -> service.cancel(null, request));
+        assertThrows(ValidationException.class, () -> service.cancel(null, request));
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCancel() {
-        assertThrows(NullPointerException.class, () -> service.cancel(appointmentId, null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCancel() {
+        assertThrows(ValidationException.class, () -> service.cancel(appointmentId, null));
     }
 
     @Test
@@ -568,14 +569,14 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForComplete() {
+    void shouldThrowValidationExceptionWhenIdIsNullForComplete() {
         var request = new AppointmentCompleteRequest("Observations");
-        assertThrows(NullPointerException.class, () -> service.complete(null, request));
+        assertThrows(ValidationException.class, () -> service.complete(null, request));
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForComplete() {
-        assertThrows(NullPointerException.class, () -> service.complete(appointmentId, null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForComplete() {
+        assertThrows(ValidationException.class, () -> service.complete(appointmentId, null));
     }
 
     @Test
@@ -621,8 +622,8 @@ class AppointmentServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForMarkNoShow() {
-        assertThrows(NullPointerException.class, () -> service.markNoShow(null));
+    void shouldThrowValidationExceptionWhenIdIsNullForMarkNoShow() {
+        assertThrows(ValidationException.class, () -> service.markNoShow(null));
     }
 
     @Test

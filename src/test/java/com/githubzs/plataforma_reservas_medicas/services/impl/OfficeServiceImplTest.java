@@ -33,6 +33,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeSummaryMapperImpl;
 
@@ -114,8 +115,8 @@ class OfficeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test
@@ -151,8 +152,8 @@ class OfficeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForFindById() {
-        assertThrows(NullPointerException.class, () -> service.findById(null));
+    void shouldThrowValidationExceptionWhenIdIsNullForFindById() {
+        assertThrows(ValidationException.class, () -> service.findById(null));
     }
 
     @Test
@@ -216,8 +217,8 @@ class OfficeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenStatusIsNullForFindByStatus() {
-        assertThrows(NullPointerException.class, () -> service.findByStatus(null, Pageable.ofSize(10)));
+    void shouldThrowValidationExceptionWhenStatusIsNullForFindByStatus() {
+        assertThrows(ValidationException.class, () -> service.findByStatus(null, Pageable.ofSize(10)));
     }
 
     @Test
@@ -270,15 +271,15 @@ class OfficeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForUpdate() {
+    void shouldThrowValidationExceptionWhenIdIsNullForUpdate() {
         OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102);
 
-        assertThrows(NullPointerException.class, () -> service.update(null, request));
+        assertThrows(ValidationException.class, () -> service.update(null, request));
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForUpdate() {
-        assertThrows(NullPointerException.class, () -> service.update(officeId, null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForUpdate() {
+        assertThrows(ValidationException.class, () -> service.update(officeId, null));
     }
 
     @Test
@@ -331,13 +332,13 @@ class OfficeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForExistsByIdAndStatus() {
-        assertThrows(NullPointerException.class, () -> service.existsByIdAndStatus(null, OfficeStatus.AVAILABLE));
+    void shouldThrowValidationExceptionWhenIdIsNullForExistsByIdAndStatus() {
+        assertThrows(ValidationException.class, () -> service.existsByIdAndStatus(null, OfficeStatus.AVAILABLE));
     }
 
     @Test
-    void shouldThrowNPEWhenStatusIsNullForExistsByIdAndStatus() {
-        assertThrows(NullPointerException.class, () -> service.existsByIdAndStatus(officeId, null));
+    void shouldThrowValidationExceptionWhenStatusIsNullForExistsByIdAndStatus() {
+        assertThrows(ValidationException.class, () -> service.existsByIdAndStatus(officeId, null));
     }
 
 }

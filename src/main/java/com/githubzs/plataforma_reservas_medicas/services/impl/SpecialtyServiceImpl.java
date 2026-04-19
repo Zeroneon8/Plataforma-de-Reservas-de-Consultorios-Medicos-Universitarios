@@ -1,7 +1,6 @@
 package com.githubzs.plataforma_reservas_medicas.services.impl;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +12,11 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.SpecialtyService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtyMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtySummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +31,10 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     @Override
     @Transactional
     public SpecialtyResponse create(SpecialtyCreateRequest request) {
-        Objects.requireNonNull(request, "Specialty create request is required");
+        if (request == null) {
+            throw new ValidationException("Specialty create request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         // Normalizamos el nombre y la descripción (si existe) de la especialidad
         String normalizedName = request.name().trim();
@@ -61,7 +65,10 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     @Override
     @Transactional(readOnly = true)
     public SpecialtyResponse findByName(String name) {
-        Objects.requireNonNull(name, "Specialty name is required");
+        if (name == null) {
+            throw new ValidationException("Specialty name is required",
+                List.of(new FieldViolation("name", "is required")));
+        }
         String normalizedName = name.trim();
         return specialtyRepository.findByName(normalizedName)
                 .map(mapper::toResponse)
@@ -71,7 +78,10 @@ public class SpecialtyServiceImpl implements SpecialtyService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
-        Objects.requireNonNull(name, "Specialty name is required");
+        if (name == null) {
+            throw new ValidationException("Specialty name is required",
+                List.of(new FieldViolation("name", "is required")));
+        }
         String normalizedName = name.trim();
         return specialtyRepository.existsByName(normalizedName);
     }

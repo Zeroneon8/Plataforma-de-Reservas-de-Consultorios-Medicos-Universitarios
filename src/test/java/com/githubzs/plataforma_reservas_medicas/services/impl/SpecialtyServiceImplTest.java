@@ -27,6 +27,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.Specialty;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtyMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtySummaryMapperImpl;
 
@@ -97,8 +98,8 @@ class SpecialtyServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test
@@ -131,8 +132,8 @@ class SpecialtyServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenNameIsNullForFindByName() {
-        assertThrows(NullPointerException.class, () -> service.findByName(null));
+    void shouldThrowValidationExceptionWhenNameIsNullForFindByName() {
+        assertThrows(ValidationException.class, () -> service.findByName(null));
     }
 
     @Test
@@ -184,8 +185,8 @@ class SpecialtyServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenNameIsNullForExistsByName() {
-        assertThrows(NullPointerException.class, () -> service.existsByName(null));
+    void shouldThrowValidationExceptionWhenNameIsNullForExistsByName() {
+        assertThrows(ValidationException.class, () -> service.existsByName(null));
     }
 
 }

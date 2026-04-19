@@ -2,8 +2,8 @@ package com.githubzs.plataforma_reservas_medicas.services.impl;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +29,8 @@ import com.githubzs.plataforma_reservas_medicas.services.AppointmentService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentSummaryMapper;
 import com.githubzs.plataforma_reservas_medicas.services.validator.AppointmentValidator;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,7 +46,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponse create(AppointmentCreateRequest request) {
-        Objects.requireNonNull(request, "Appointment create request is required");
+        if (request == null) {
+            throw new ValidationException("Appointment create request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         Patient patient = validator.validatePatientExistsAndActive(request.patientId());
         Doctor doctor = validator.validateDoctorExistsAndActive(request.doctorId());
@@ -52,16 +57,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         AppointmentType appointmentType = validator.validateAppointmentTypeExists(request.appointmentTypeId());
 
         // Validar que la fecha de inicio no es pasada y es menor que la fecha de fin
-        validator.validateAppointmentStartAtEndAt(request.startAt(), request.startAt().plusMinutes(appointmentType.getDurationMinutes()));
+        LocalDateTime startAt = request.startAt();
+        LocalDateTime endAt = startAt == null ? null : startAt.plusMinutes(appointmentType.getDurationMinutes());
+        validator.validateAppointmentStartAtEndAt(startAt, endAt);
 
         // Validar que la cita cae dentro del horario laboral del doctor
-        LocalDateTime endAt = request.startAt().plusMinutes(appointmentType.getDurationMinutes());
-        validator.validateAppointmentWithinDoctorSchedule(request.doctorId(), request.startAt(), endAt);
+        validator.validateAppointmentWithinDoctorSchedule(request.doctorId(), startAt, endAt);
 
         // Validar disponibilidad de doctor, consultorio y paciente para el rango horario solicitado
-        validator.validateNoOverlapForDoctor(request.doctorId(), request.startAt(), endAt);
-        validator.validateNoOverlapForOffice(request.officeId(), request.startAt(), endAt);
-        validator.validateNoOverlapForPatient(request.patientId(), request.startAt(), endAt);
+        validator.validateNoOverlapForDoctor(request.doctorId(), startAt, endAt);
+        validator.validateNoOverlapForOffice(request.officeId(), startAt, endAt);
+        validator.validateNoOverlapForPatient(request.patientId(), startAt, endAt);
 
         // Crear la cita con estado inicial SCHEDULED
         Appointment appointment = mapper.toEntity(request);
@@ -69,7 +75,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setOffice(office);
         appointment.setAppointmentType(appointmentType);
-        appointment.setStartAt(request.startAt());
+        appointment.setStartAt(startAt);
         appointment.setEndAt(endAt);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointment.setCreatedAt(Instant.now());
@@ -81,7 +87,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public AppointmentResponse findById(UUID id) {
-        Objects.requireNonNull(id, "Appointment id is required");
+        if (id == null) {
+            throw new ValidationException("Appointment id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
 
         Appointment appointment = validator.validateAppointmentExists(id);
 
@@ -91,10 +100,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<AppointmentSummaryResponse> findAll(AppointmentSearchRequest request, Pageable pageable) {
-        var requestCopy = request == null ? new AppointmentSearchRequest(null, null, null, null, null, null, null) : request;
+        AppointmentSearchRequest requestCopy = request == null ? new AppointmentSearchRequest(null, null, null, null, null, null, null) : request;
         
         if (requestCopy.startAt() != null && requestCopy.endAt() != null && requestCopy.startAt().isAfter(requestCopy.endAt())) {
-            throw new ConflictException("Start date cannot be after end date");
+            throw new ValidationException("Start time must be before end time",
+                List.of(new FieldViolation("startAt", "must be before or equal to endAt")));
         }
 
         Pageable finalPageable = pageable == null ? Pageable.ofSize(10) : pageable;
@@ -129,7 +139,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentSummaryResponse confirm(UUID id) {
-        Objects.requireNonNull(id, "Appointment id is required");
+        if (id == null) {
+            throw new ValidationException("Appointment id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
 
         Appointment appointment = validator.validateAppointmentExists(id);
 
@@ -147,8 +160,21 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentSummaryResponse cancel(UUID id, AppointmentCancelRequest request) {
-        Objects.requireNonNull(id, "Appointment id is required");
-        Objects.requireNonNull(request, "Cancel request is required");
+        if (id == null) {
+            throw new ValidationException("Appointment id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
+        if (request == null) {
+            throw new ValidationException("Cancel request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
+
+        // La cancelación debe registrar un motivo obligatorio
+        String reason = request.cancelReason();
+        if (reason == null || reason.isBlank()) {
+            throw new ValidationException("Cancel reason is required",
+                List.of(new FieldViolation("cancelReason", "is required")));
+        }
 
         Appointment appointment = validator.validateAppointmentExists(id);
 
@@ -158,7 +184,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ConflictException("Only SCHEDULED or CONFIRMED appointments can be cancelled");
         }
 
-        // La cancelación debe registrar un motivo obligatorio
         appointment.setCancelReason(request.cancelReason().trim());
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
@@ -169,8 +194,14 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentSummaryResponse complete(UUID id, AppointmentCompleteRequest request) {
-        Objects.requireNonNull(id, "Appointment id is required");
-        Objects.requireNonNull(request, "Complete request is required");
+        if (id == null) {
+            throw new ValidationException("Appointment id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
+        if (request == null) {
+            throw new ValidationException("Complete request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
 
         Appointment appointment = validator.validateAppointmentExists(id);
 
@@ -197,7 +228,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentSummaryResponse markNoShow(UUID id) {
-        Objects.requireNonNull(id, "Appointment id is required");
+        if (id == null) {
+            throw new ValidationException("Appointment id is required",
+                List.of(new FieldViolation("id", "is required")));
+        }
 
         Appointment appointment = validator.validateAppointmentExists(id);
 

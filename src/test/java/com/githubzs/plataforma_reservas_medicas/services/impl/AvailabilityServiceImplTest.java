@@ -1,6 +1,5 @@
 package com.githubzs.plataforma_reservas_medicas.services.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,6 +14,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +33,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentT
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 @ExtendWith(MockitoExtension.class)
 class AvailabilityServiceImplTest {
@@ -102,10 +103,13 @@ class AvailabilityServiceImplTest {
         List<AvailabilitySlotResponse> slots = service.getAvailableSlots(doctorId, date);
 
         assertEquals(4, slots.size());
-        assertThat(slots).extracting(AvailabilitySlotResponse::slotStart)
-                .containsExactly(LocalTime.of(6, 0), LocalTime.of(8, 0), LocalTime.of(13, 0), LocalTime.of(15, 0));
-        assertThat(slots).extracting(AvailabilitySlotResponse::slotEnd)
-                .containsExactly(LocalTime.of(7, 0), LocalTime.of(12, 0), LocalTime.of(14, 0), LocalTime.of(17, 0));
+
+        var starts = slots.stream().map(AvailabilitySlotResponse::slotStart).collect(Collectors.toList());
+        assertEquals(List.of(LocalTime.of(6, 0), LocalTime.of(8, 0), LocalTime.of(13, 0), LocalTime.of(15, 0)), starts);
+        
+        var ends = slots.stream().map(AvailabilitySlotResponse::slotEnd).collect(Collectors.toList());
+        assertEquals(List.of(LocalTime.of(7, 0), LocalTime.of(12, 0), LocalTime.of(14, 0), LocalTime.of(17, 0)), ends);
+
         verify(doctorRepository).existsById(doctorId);
         verify(doctorScheduleRepository).findByDoctor_IdAndDayOfWeek(doctorId, date.getDayOfWeek());
         verify(appointmentRepository).findByDoctorIdAndStartAtBetweenExcludeTo(
@@ -290,25 +294,25 @@ class AvailabilityServiceImplTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentForGetAvailableSlotsForAppointmentTypeWhenDurationIsNonPositive() {
+    void shouldThrowValidationExceptionForGetAvailableSlotsForAppointmentTypeWhenDurationIsNonPositive() {
         LocalDate date = LocalDate.of(2026, 4, 10);
         AppointmentType type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(0).build();
 
         when(appointmentTypeRepository.findById(appointmentTypeId)).thenReturn(Optional.of(type));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ValidationException.class,
                 () -> service.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId));
         verify(doctorRepository, never()).existsById(any());
     }
 
     @Test
-    void shouldThrowIllegalArgumentForGetAvailableSlotsForAppointmentTypeWhenDurationExceeds480() {
+    void shouldThrowValidationExceptionForGetAvailableSlotsForAppointmentTypeWhenDurationExceeds480() {
         LocalDate date = LocalDate.of(2026, 4, 10);
         AppointmentType type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(600).build();
 
         when(appointmentTypeRepository.findById(appointmentTypeId)).thenReturn(Optional.of(type));
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ValidationException.class,
                 () -> service.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId));
         verify(doctorRepository, never()).existsById(any());
     }

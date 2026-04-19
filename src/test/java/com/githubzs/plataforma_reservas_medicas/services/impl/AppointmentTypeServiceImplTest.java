@@ -26,6 +26,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentTypeRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentTypeMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentTypeSummaryMapperImpl;
 
@@ -111,15 +112,15 @@ class AppointmentTypeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test
     void shouldRejectNonPositiveDurationForCreate() {
         AppointmentTypeCreateRequest request = new AppointmentTypeCreateRequest("Consulta", "Consulta general", 0);
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(request));
+        assertThrows(ValidationException.class, () -> service.create(request));
         verify(repository, never()).existsByNameIgnoreCase(any());
         verify(repository, never()).save(any());
     }
@@ -128,7 +129,7 @@ class AppointmentTypeServiceImplTest {
     void shouldRejectDurationGreaterThan480ForCreate() {
         AppointmentTypeCreateRequest request = new AppointmentTypeCreateRequest("Consulta", "Consulta general", 481);
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(request));
+        assertThrows(ValidationException.class, () -> service.create(request));
         verify(repository, never()).existsByNameIgnoreCase(any());
         verify(repository, never()).save(any());
     }
@@ -137,7 +138,7 @@ class AppointmentTypeServiceImplTest {
     void shouldRejectBlankNameForCreate() {
         AppointmentTypeCreateRequest request = new AppointmentTypeCreateRequest("   ", "Consulta general", 30);
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(request));
+        assertThrows(ValidationException.class, () -> service.create(request));
         verify(repository, never()).existsByNameIgnoreCase(any());
         verify(repository, never()).save(any());
     }
@@ -182,8 +183,8 @@ class AppointmentTypeServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenIdIsNullForFindById() {
-        assertThrows(NullPointerException.class, () -> service.findById(null));
+    void shouldThrowValidationExceptionWhenIdIsNullForFindById() {
+        assertThrows(ValidationException.class, () -> service.findById(null));
     }
 
     @Test

@@ -27,6 +27,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.dto.PatientNoShowStatsDto
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 @ExtendWith(MockitoExtension.class)
 class ReportServiceImplTest {
@@ -144,17 +145,17 @@ class ReportServiceImplTest {
     }
 
     @Test
-    void getOfficeOccupancyShouldThrowWhenFromIsNull() {
+    void getOfficeOccupancyShouldThrowValidationExceptionWhenFromIsNull() {
         LocalDate to = baseDate;
-        assertThrows(NullPointerException.class, () -> service.getOfficeOccupancy(null, to));
+        assertThrows(ValidationException.class, () -> service.getOfficeOccupancy(null, to));
         verify(officeRepository, never()).calculateOfficeOccupancyBetween(any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
-    void getOfficeOccupancyShouldThrowWhenFromAfterTo() {
+    void getOfficeOccupancyShouldThrowValidationExceptionWhenFromAfterTo() {
         LocalDate from = baseDate.plusDays(5);
         LocalDate to = baseDate;
-        assertThrows(IllegalArgumentException.class, () -> service.getOfficeOccupancy(from, to));
+        assertThrows(ValidationException.class, () -> service.getOfficeOccupancy(from, to));
         verify(officeRepository, never()).calculateOfficeOccupancyBetween(any(LocalDateTime.class), any(LocalDateTime.class));
     }
 

@@ -2,6 +2,8 @@ package com.githubzs.plataforma_reservas_medicas.services.validator;
 
 import java.util.UUID;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Component;
 
@@ -20,7 +22,9 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.AppointmentR
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.impl.DoctorScheduleServiceImpl;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -71,12 +75,23 @@ public class AppointmentValidator {
     }
 
     public void validateAppointmentStartAtEndAt(LocalDateTime startAt, LocalDateTime endAt) {
-        if (!startAt.isAfter(LocalDateTime.now())) {
-            throw new ConflictException("Cannot create appointment in the past");
+        List<FieldViolation> violations = new ArrayList<>();
+        if (startAt == null) {
+            violations.add(new FieldViolation("startAt", "Start time is required"));
+        }
+        else if (startAt.isBefore(LocalDateTime.now())) {
+            violations.add(new FieldViolation("startAt", "Start time must be in the future"));
         }
 
-        if (!endAt.isAfter(startAt)) {
-            throw new ConflictException("Appointment end time must be after start time");
+        if (endAt == null) {
+            violations.add(new FieldViolation("endAt", "End time is required"));
+        }
+        else if (startAt != null && !endAt.isAfter(startAt)) {
+            violations.add(new FieldViolation("endAt", "End time must be after start time"));
+        }
+
+        if (!violations.isEmpty()) {
+            throw new ValidationException("Invalid appointment date times", violations);
         }
     }
 

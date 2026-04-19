@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.Comparator;
 
 import org.springframework.stereotype.Service;
@@ -24,6 +23,8 @@ import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundExcept
 import com.githubzs.plataforma_reservas_medicas.services.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorScheduleMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorScheduleSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,8 +41,14 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional
     public DoctorScheduleResponse create(UUID doctorId, DoctorScheduleCreateRequest request) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(request, "Doctor schedule request is required");
+        if (request == null) {
+            throw new ValidationException("Doctor schedule request is required",
+                List.of(new FieldViolation("request", "is required")));
+        }
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
         
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
@@ -50,13 +57,16 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
             throw new ConflictException("Doctor is not active");
         }
         if (request.dayOfWeek() == null) {
-            throw new IllegalArgumentException("Day of week is required");
+            throw new ValidationException("Day of week is required",
+                List.of(new FieldViolation("dayOfWeek", "is required")));
         }
         if (request.startTime() == null || request.endTime() == null) {
-            throw new IllegalArgumentException("Start time and end time are required");
+            throw new ValidationException("Start time and end time are required",
+                List.of(new FieldViolation("startTime", "is required"), new FieldViolation("endTime", "is required")));
         }
         if (!request.startTime().isBefore(request.endTime())) {
-            throw new ConflictException("Schedule start time must be before end time");
+            throw new ValidationException("Schedule start time must be before end time",
+                List.of(new FieldViolation("startTime", "must be before endTime")));
         }
 
         validateNoOverlap(doctorId, request.dayOfWeek(), request.startTime(), request.endTime());
@@ -71,6 +81,11 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public List<DoctorScheduleSummaryResponse> findByDoctor(UUID doctorId) {
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
         }
@@ -86,8 +101,14 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public List<DoctorScheduleSummaryResponse> findByDoctorAndDay(UUID doctorId, DayOfWeek day) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(day, "Day of week is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (day == null) {
+            throw new ValidationException("Day of week is required",
+                List.of(new FieldViolation("dayOfWeek", "is required")));
+        }
 
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);
@@ -104,9 +125,18 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     @Override
     @Transactional(readOnly = true)
     public boolean isWithinSchedule(UUID doctorId, LocalDateTime start, LocalDateTime end) {
-        Objects.requireNonNull(doctorId, "Doctor id is required");
-        Objects.requireNonNull(start, "Start time is required");
-        Objects.requireNonNull(end, "End time is required");
+        if (doctorId == null) {
+            throw new ValidationException("Doctor id is required",
+                List.of(new FieldViolation("doctorId", "is required")));
+        }
+        if (start == null) {
+            throw new ValidationException("Start time is required",
+                List.of(new FieldViolation("startTime", "is required")));
+        }
+        if (end == null) {
+            throw new ValidationException("End time is required",
+                List.of(new FieldViolation("endTime", "is required")));
+        }
 
         if (!doctorRepository.existsById(doctorId)) {
             throw new ResourceNotFoundException("Doctor not found with id " + doctorId);

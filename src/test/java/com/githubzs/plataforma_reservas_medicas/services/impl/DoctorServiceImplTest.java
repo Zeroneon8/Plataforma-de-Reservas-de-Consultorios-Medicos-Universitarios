@@ -35,6 +35,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.SpecialtyRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtySummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorSummaryMapperImpl;
@@ -108,9 +109,9 @@ class DoctorServiceImplTest {
         Specialty specialty = Specialty.builder().id(specialtyId).name("Medicina General").description("General").build();
 
         when(specialtyRepository.findById(specialtyId)).thenReturn(Optional.of(specialty));
-        when(doctorRepository.existsByDocumentNumber(request.documentNumber())).thenReturn(false);
-        when(doctorRepository.existsByLicenseNumber(request.licenseNumber())).thenReturn(false);
-        when(doctorRepository.existsByEmailIgnoreCase(request.email())).thenReturn(false);
+        when(doctorRepository.existsByDocumentNumber(request.documentNumber().trim())).thenReturn(false);
+        when(doctorRepository.existsByLicenseNumber(request.licenseNumber().trim())).thenReturn(false);
+        when(doctorRepository.existsByEmailIgnoreCase(request.email().trim().toLowerCase())).thenReturn(false);
         when(doctorRepository.save(any(Doctor.class))).thenAnswer(inv -> {
             Doctor doctor = inv.getArgument(0);
             doctor.setId(doctorId);
@@ -131,8 +132,8 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForCreate() {
-        assertThrows(NullPointerException.class, () -> service.create(null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForCreate() {
+        assertThrows(ValidationException.class, () -> service.create(null));
     }
 
     @Test
@@ -209,8 +210,8 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenDoctorIdIsNullForFindById() {
-        assertThrows(NullPointerException.class, () -> service.findById(null));
+    void shouldThrowValidationExceptionWhenDoctorIdIsNullForFindById() {
+        assertThrows(ValidationException.class, () -> service.findById(null));
     }
 
     @Test
@@ -272,8 +273,8 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenSpecialtyIdIsNullForFindActiveBySpecialty() {
-        assertThrows(NullPointerException.class, () -> service.findActiveBySpecialty(null, Pageable.ofSize(10)));
+    void shouldThrowValidationExceptionWhenSpecialtyIdIsNullForFindActiveBySpecialty() {
+        assertThrows(ValidationException.class, () -> service.findActiveBySpecialty(null, Pageable.ofSize(10)));
     }
 
     @Test
@@ -353,15 +354,15 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenDoctorIdIsNullForUpdate() {
+    void shouldThrowValidationExceptionWhenDoctorIdIsNullForUpdate() {
         DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", specialtyId);
 
-        assertThrows(NullPointerException.class, () -> service.update(null, request));
+        assertThrows(ValidationException.class, () -> service.update(null, request));
     }
 
     @Test
-    void shouldThrowNPEWhenRequestIsNullForUpdate() {
-        assertThrows(NullPointerException.class, () -> service.update(doctorId, null));
+    void shouldThrowValidationExceptionWhenRequestIsNullForUpdate() {
+        assertThrows(ValidationException.class, () -> service.update(doctorId, null));
     }
 
     @Test
@@ -446,13 +447,13 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldThrowNPEWhenDoctorIdIsNullForChangeStatus() {
-        assertThrows(NullPointerException.class, () -> service.changeStatus(null, DoctorStatus.INACTIVE));
+    void shouldThrowValidationExceptionWhenDoctorIdIsNullForChangeStatus() {
+        assertThrows(ValidationException.class, () -> service.changeStatus(null, DoctorStatus.INACTIVE));
     }
 
     @Test
-    void shouldThrowNPEWhenStatusIsNullForChangeStatus() {
-        assertThrows(NullPointerException.class, () -> service.changeStatus(doctorId, null));
+    void shouldThrowValidationExceptionWhenStatusIsNullForChangeStatus() {
+        assertThrows(ValidationException.class, () -> service.changeStatus(doctorId, null));
     }
 
     @Test

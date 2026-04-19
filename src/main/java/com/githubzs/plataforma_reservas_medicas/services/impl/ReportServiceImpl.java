@@ -1,11 +1,8 @@
 package com.githubzs.plataforma_reservas_medicas.services.impl;
 
-
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +17,8 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.services.ReportService;
+import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,11 +33,18 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional(readOnly = true)
     public List<OfficeOccupancyResponse> getOfficeOccupancy(LocalDate from, LocalDate to) {
-        Objects.requireNonNull(from, "From date is required");
-        Objects.requireNonNull(to, "To date is required");
+        if (from == null) {
+            throw new ValidationException("From date is required",
+                List.of(new FieldViolation("from", "is required")));
+        }
+        if (to == null) {
+            throw new ValidationException("To date is required",
+                List.of(new FieldViolation("to", "is required")));
+        }
 
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("From date must be before or equal to to date");
+            throw new ValidationException("From date must be before or equal to to date",
+                List.of(new FieldViolation("from", "must be before or equal to to date")));
         }
 
         LocalDateTime fromDateTime = from.atStartOfDay();
@@ -82,11 +88,18 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional(readOnly = true)
     public List<NoShowPatientResponse> getNoShowPatients(LocalDate from, LocalDate to) {
-        Objects.requireNonNull(from, "From date is required");
-        Objects.requireNonNull(to, "To date is required");
+        if (from == null) {
+            throw new ValidationException("From date is required",
+                List.of(new FieldViolation("from", "is required")));
+        }
+        if (to == null) {
+            throw new ValidationException("To date is required",
+                List.of(new FieldViolation("to", "is required")));
+        }
 
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("From date must be before or equal to to date");
+            throw new ValidationException("From date must be before or equal to to date",
+                List.of(new FieldViolation("from", "must be before or equal to to date")));
         }
 
         LocalDateTime fromDateTime = from.atStartOfDay();
@@ -102,5 +115,4 @@ public class ReportServiceImpl implements ReportService {
                 .toList();
     }
 
-    
 }
