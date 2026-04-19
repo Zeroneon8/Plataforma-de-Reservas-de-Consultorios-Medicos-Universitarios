@@ -1,6 +1,5 @@
 package com.githubzs.plataforma_reservas_medicas.api.controllers;
 
-
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -21,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
-
 @RestController
 @RequestMapping("/api/specialties")
 @RequiredArgsConstructor
@@ -33,20 +30,14 @@ public class SpecialtyController {
 
     @PostMapping
     public ResponseEntity<SpecialtyResponse> create(@Valid @RequestBody  SpecialtyCreateRequest request, UriComponentsBuilder uriBuilder) {
-        
         var specialtyCreated = specialtyService.create(request);
-
         var location = uriBuilder.path("/api/specialties/{id}").buildAndExpand(specialtyCreated.id()).toUri();
-        
         return ResponseEntity.created(location).body(specialtyCreated);
     }
 
     @GetMapping
-    public ResponseEntity<List<SpecialtySummaryResponse>> getAll(){
-
+    public ResponseEntity<List<SpecialtySummaryResponse>> list(){
         return ResponseEntity.ok(specialtyService.findAll());
     }
-    
-    
     
 }

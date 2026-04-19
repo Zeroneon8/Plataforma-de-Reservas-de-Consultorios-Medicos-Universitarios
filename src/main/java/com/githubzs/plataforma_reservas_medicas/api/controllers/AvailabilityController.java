@@ -30,22 +30,19 @@ public class AvailabilityController {
     @GetMapping("/doctors/{doctorId}")
     public ResponseEntity<List<AvailabilitySlotResponse>> getAvailableSlots(
         @PathVariable UUID doctorId,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        
-          var slots = availabilityService.getAvailableSlots(doctorId, date);
-
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        var slots = availabilityService.getAvailableSlots(doctorId, date);
         return ResponseEntity.ok(slots);
     }
 
     @GetMapping("/doctors/{doctorId}/appointment-types/{appointmentTypeId}")
     public ResponseEntity<List<AvailabilitySlotResponse>> getAvailableSlotsForAppointmentType(
         @PathVariable UUID doctorId,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-        @RequestParam(required = false) UUID appointmentTypeId
+        @PathVariable UUID appointmentTypeId,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        
-           var slots = availabilityService.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId);
-            
+        var slots = availabilityService.getAvailableSlotsForAppointmentType(doctorId, date, appointmentTypeId);    
         return ResponseEntity.ok(slots);
     }
 

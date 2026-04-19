@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,6 @@ import com.githubzs.plataforma_reservas_medicas.services.PatientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/api/patients")
 @RequiredArgsConstructor
@@ -36,27 +36,25 @@ public class PatientController {
 
     @PostMapping
     public ResponseEntity<PatientResponse> create(@Valid @RequestBody PatientCreateRequest request, UriComponentsBuilder uriBuilder) {
-        var created = patientService.create(request);
-        var location = uriBuilder.path("/api/patients/{id}").buildAndExpand(created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
+        var patientCreated = patientService.create(request);
+        var location = uriBuilder.path("/api/patients/{id}").buildAndExpand(patientCreated.id()).toUri();
+        return ResponseEntity.created(location).body(patientCreated);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PatientSummaryResponse> getById(@PathVariable UUID id) {
-        var patient = patientService.findById(id);
-        return ResponseEntity.ok(patient);
+    public ResponseEntity<PatientSummaryResponse> get(@PathVariable UUID id) {
+        return ResponseEntity.ok(patientService.findById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<PatientSummaryResponse>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        var patients = patientService.findAll(PageRequest.of(page, size));
-        return ResponseEntity.ok(patients);
+        var result = patientService.findAll(PageRequest.of(page, size, Sort.by("createdAt").ascending()));
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<PatientResponse> update(@PathVariable UUID id, @Valid @RequestBody PatientUpdateRequest request) {
-        var updated = patientService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(patientService.update(id, request));
     }
 
 }

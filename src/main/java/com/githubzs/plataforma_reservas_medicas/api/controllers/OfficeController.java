@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +23,6 @@ import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/api/offices")
 @RequiredArgsConstructor
@@ -34,20 +33,19 @@ public class OfficeController {
 
     @PostMapping
     public ResponseEntity<OfficeResponse> create(@Valid @RequestBody OfficeCreateRequest request, UriComponentsBuilder uriBuilder) {
-        var created = officeService.create(request);
-        var location = uriBuilder.path("/api/offices/{id}").buildAndExpand(created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
+        var officeCreated = officeService.create(request);
+        var location = uriBuilder.path("/api/offices/{id}").buildAndExpand(officeCreated.id()).toUri();
+        return ResponseEntity.created(location).body(officeCreated);
     }
 
     @GetMapping
-    public ResponseEntity<List<OfficeSummaryResponse>> getAll() {
+    public ResponseEntity<List<OfficeSummaryResponse>> list() {
         return ResponseEntity.ok(officeService.findAll());
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<OfficeResponse> update(@PathVariable UUID id, @Valid @RequestBody OfficeUpdateRequest request) {
-        var updated = officeService.update(id, request);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(officeService.update(id, request));
     }
 
 }

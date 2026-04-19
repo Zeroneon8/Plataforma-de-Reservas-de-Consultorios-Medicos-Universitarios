@@ -30,9 +30,9 @@ public class AppointmentTypeController {
 
     @PostMapping
     public ResponseEntity<AppointmentTypeResponse> create(@Valid @RequestBody AppointmentTypeCreateRequest request, UriComponentsBuilder uriBuilder) {
-        var created = appointmentTypeService.create(request);
-        var location = uriBuilder.path("/api/appointment-types/{id}").buildAndExpand(created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
+        var appointmentTypeCreated = appointmentTypeService.create(request);
+        var location = uriBuilder.path("/api/appointment-types/{id}").buildAndExpand(appointmentTypeCreated.id()).toUri();
+        return ResponseEntity.created(location).body(appointmentTypeCreated);
     }
 
     @GetMapping

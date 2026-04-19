@@ -1,10 +1,10 @@
 package com.githubzs.plataforma_reservas_medicas.api.controllers;
 
-
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +28,6 @@ import com.githubzs.plataforma_reservas_medicas.services.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-
-
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
@@ -39,29 +37,21 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
  
     @PostMapping
-    public ResponseEntity<AppointmentResponse> create(@Valid @RequestBody AppointmentCreateRequest request, UriComponentsBuilder uriBuilder) {
-       
+    public ResponseEntity<AppointmentResponse> create(@Valid @RequestBody AppointmentCreateRequest request, UriComponentsBuilder uriBuilder) {  
         var appointmentCreated= appointmentService.create(request);
-
         var location = uriBuilder.path("/api/appointments/{id}").buildAndExpand(appointmentCreated.id()).toUri();
-
         return ResponseEntity.created(location).body(appointmentCreated);    
     }
 
     @GetMapping({"/{id}"})
     public ResponseEntity<AppointmentResponse> getById(@PathVariable UUID id) {
-
-       var appointment = appointmentService.findById(id);
-
-       return ResponseEntity.ok(appointment);
+       return ResponseEntity.ok(appointmentService.findById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<AppointmentSummaryResponse>> list(@Valid @RequestBody AppointmentSearchRequest request, @RequestParam (defaultValue = "0") int page, @RequestParam (defaultValue = "10") int size) {
-        
-       var appointment = appointmentService.findAll(request,PageRequest.of(page, size));
-
-       return ResponseEntity.ok(appointment);
+       var result = appointmentService.findAll(request,PageRequest.of(page, size, Sort.by("createdAt").ascending()));
+       return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/{id}/confirm")
@@ -84,8 +74,6 @@ public class AppointmentController {
           return ResponseEntity.ok(appointmentService.markNoShow(id));
     }
 
-
-    
 }
     
 

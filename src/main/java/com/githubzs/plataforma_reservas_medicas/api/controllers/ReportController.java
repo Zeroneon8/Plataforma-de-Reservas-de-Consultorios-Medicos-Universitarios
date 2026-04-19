@@ -18,7 +18,6 @@ import com.githubzs.plataforma_reservas_medicas.services.ReportService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor

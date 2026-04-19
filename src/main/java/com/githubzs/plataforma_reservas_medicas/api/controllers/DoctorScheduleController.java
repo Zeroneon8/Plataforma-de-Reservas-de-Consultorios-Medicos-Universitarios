@@ -21,7 +21,6 @@ import com.githubzs.plataforma_reservas_medicas.services.DoctorScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/api/doctors")
 @RequiredArgsConstructor
@@ -32,15 +31,14 @@ public class DoctorScheduleController {
 
     @PostMapping("/{doctorId}/schedules")
     public ResponseEntity<DoctorScheduleResponse> create(@PathVariable UUID doctorId, @Valid @RequestBody DoctorScheduleCreateRequest request, UriComponentsBuilder uriBuilder) {
-        var created = doctorScheduleService.create(doctorId, request);
-        var location = uriBuilder.path("/api/doctors/{doctorId}/schedules/{id}").buildAndExpand(doctorId, created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
+        var doctorScheduleCreated = doctorScheduleService.create(doctorId, request);
+        var location = uriBuilder.path("/api/doctors/{doctorId}/schedules").buildAndExpand(doctorId).toUri();
+        return ResponseEntity.created(location).body(doctorScheduleCreated);
     }
 
     @GetMapping("/{doctorId}/schedules")
     public ResponseEntity<List<DoctorScheduleSummaryResponse>> getByDoctor(@PathVariable UUID doctorId) {
-        var schedules = doctorScheduleService.findByDoctor(doctorId);
-        return ResponseEntity.ok(schedules);
+        return ResponseEntity.ok(doctorScheduleService.findByDoctor(doctorId));
     }
 
 }
