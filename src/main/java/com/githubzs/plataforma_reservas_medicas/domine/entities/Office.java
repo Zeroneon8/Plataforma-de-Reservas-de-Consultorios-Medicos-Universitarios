@@ -51,6 +51,7 @@ public class Office {
     @Column(length = 255)
     private String description;
 
+    @NotNull
     @Positive
     @Column(name = "room_number", nullable = false)
     private int roomNumber;
