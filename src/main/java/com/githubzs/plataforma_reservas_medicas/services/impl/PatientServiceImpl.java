@@ -22,7 +22,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.PatientService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientSummaryMapper;
-import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 

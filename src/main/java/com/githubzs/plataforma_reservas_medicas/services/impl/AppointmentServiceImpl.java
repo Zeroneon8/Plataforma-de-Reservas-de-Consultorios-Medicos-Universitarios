@@ -30,7 +30,7 @@ import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentMappe
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentSummaryMapper;
 import com.githubzs.plataforma_reservas_medicas.services.validator.AppointmentValidator;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
-import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 

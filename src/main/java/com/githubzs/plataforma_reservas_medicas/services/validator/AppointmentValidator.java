@@ -24,7 +24,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.services.impl.DoctorScheduleServiceImpl;
-import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
 

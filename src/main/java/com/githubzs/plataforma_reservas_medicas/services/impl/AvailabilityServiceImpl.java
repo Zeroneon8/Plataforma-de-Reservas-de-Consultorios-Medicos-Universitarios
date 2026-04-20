@@ -23,7 +23,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorScheduleRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
-import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 import com.githubzs.plataforma_reservas_medicas.services.AvailabilityService;
 
 import lombok.RequiredArgsConstructor;

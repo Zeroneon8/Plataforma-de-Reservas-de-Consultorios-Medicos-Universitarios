@@ -21,7 +21,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundExcept
 import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeSummaryMapper;
-import com.githubzs.plataforma_reservas_medicas.api.error.ErrorResponse.FieldViolation;
+import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 
 import lombok.RequiredArgsConstructor;
