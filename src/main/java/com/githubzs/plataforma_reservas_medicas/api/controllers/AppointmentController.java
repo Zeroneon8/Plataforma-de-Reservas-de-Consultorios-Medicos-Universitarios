@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
@@ -49,7 +50,7 @@ public class AppointmentController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<AppointmentSummaryResponse>> list(@Valid @RequestBody AppointmentSearchRequest request, @RequestParam (defaultValue = "0") int page, @RequestParam (defaultValue = "10") int size) {
+    public ResponseEntity<Page<AppointmentSummaryResponse>> list(@Valid @ModelAttribute AppointmentSearchRequest request, @RequestParam (defaultValue = "0") int page, @RequestParam (defaultValue = "10") int size) {
        var result = appointmentService.findAll(request,PageRequest.of(page, size, Sort.by("createdAt").ascending()));
        return ResponseEntity.ok(result);
     }
