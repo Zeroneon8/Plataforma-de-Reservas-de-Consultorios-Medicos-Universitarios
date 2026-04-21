@@ -53,7 +53,7 @@ public class DoctorController {
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<DoctorResponse> update(@PathVariable UUID id, @Valid @RequestBody DoctorUpdateRequest request) {
+	public ResponseEntity<DoctorSummaryResponse> update(@PathVariable UUID id, @Valid @RequestBody DoctorUpdateRequest request) {
 		return ResponseEntity.ok(doctorService.update(id, request));
 	}
 

@@ -342,7 +342,7 @@ class DoctorServiceImplTest {
         when(doctorRepository.existsByEmailIgnoreCase("wilson@example.com")).thenReturn(false);
         when(doctorRepository.save(any(Doctor.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        DoctorResponse result = service.update(doctorId, request);
+        DoctorSummaryResponse result = service.update(doctorId, request);
 
         assertNotNull(result);
         assertEquals(doctorId, result.id());

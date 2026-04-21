@@ -23,7 +23,7 @@ public interface DoctorService {
 
     Page<DoctorSummaryResponse> findBySpecialty(UUID specialtyId, Pageable pageable); 
 
-    DoctorResponse update(UUID doctorId, DoctorUpdateRequest request); 
+    DoctorSummaryResponse update(UUID doctorId, DoctorUpdateRequest request); 
 
     DoctorSummaryResponse changeStatus(UUID doctorId, DoctorStatus status); 
 

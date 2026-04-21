@@ -133,7 +133,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional
-    public DoctorResponse update(UUID doctorId, DoctorUpdateRequest request) {
+    public DoctorSummaryResponse update(UUID doctorId, DoctorUpdateRequest request) {
         if (doctorId == null) {
             throw new ValidationException("Doctor id is required",
                 List.of(new FieldViolation("doctorId", "is required")));
@@ -168,7 +168,7 @@ public class DoctorServiceImpl implements DoctorService {
 
         doctor.setUpdatedAt(Instant.now());
         Doctor saved = doctorRepository.save(doctor);
-        return mapper.toResponse(saved);
+        return summaryMapper.toSummaryResponse(saved);
     }
 
     @Override
