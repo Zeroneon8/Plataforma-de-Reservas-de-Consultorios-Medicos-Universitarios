@@ -66,7 +66,7 @@ public class DoctorControllerTest {
         when(doctorService.findById(baseId)).thenReturn(response);
 
         mockMvc.perform(
-            get("/api/doctors/" + baseId.toString()))
+            get("/api/doctors/{id}", baseId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(baseId.toString()));
     }
@@ -78,7 +78,7 @@ public class DoctorControllerTest {
         when(doctorService.findById(baseId)).thenThrow(new ResourceNotFoundException("Doctor not found"));
 
         mockMvc.perform(
-            get("/api/doctors/" + baseId.toString()))
+            get("/api/doctors/{id}", baseId.toString()))
             .andExpect(status().isNotFound());
     }
 
@@ -111,7 +111,7 @@ public class DoctorControllerTest {
         when(doctorService.update(baseId, request)).thenReturn(response);
 
         mockMvc.perform(
-            patch("/api/doctors/" + baseId.toString())
+            patch("/api/doctors/{id}", baseId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
@@ -127,7 +127,7 @@ public class DoctorControllerTest {
         when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Doctor not found"));
 
         mockMvc.perform(
-            patch("/api/doctors/" + baseId.toString())
+            patch("/api/doctors/{id}", baseId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNotFound());
@@ -142,7 +142,7 @@ public class DoctorControllerTest {
         when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Specialty not found"));
 
         mockMvc.perform(
-            patch("/api/doctors/" + baseId.toString())
+            patch("/api/doctors/{id}", baseId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNotFound());
