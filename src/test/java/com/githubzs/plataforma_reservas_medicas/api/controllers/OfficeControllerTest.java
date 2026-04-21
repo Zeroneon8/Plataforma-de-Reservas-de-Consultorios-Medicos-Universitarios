@@ -21,6 +21,7 @@ import tools.jackson.databind.ObjectMapper;
 import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.*;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
+import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 
 @WebMvcTest(OfficeController.class)
 public class OfficeControllerTest {
@@ -87,4 +88,20 @@ public class OfficeControllerTest {
             .andExpect(jsonPath("$.location").value("Mar caribe updated"))
             .andExpect(jsonPath("$.roomNumber").value(102));
     }
+
+    @Test
+    void updateShouldReturn404WhenNotFound() throws Exception {
+        var officeId = UUID.randomUUID();
+
+        var request = new OfficeUpdateRequest("Office 1 Updated", "Mar caribe updated", null, 102);
+
+        when(officeService.update(officeId, request)).thenThrow(new ResourceNotFoundException("Office not found"));
+
+        mockMvc.perform(
+            patch("/api/offices/{id}", officeId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+    }
+    
 }
