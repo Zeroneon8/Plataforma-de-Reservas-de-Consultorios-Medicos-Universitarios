@@ -22,8 +22,10 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AvailabilityDtos.*;
 @WebMvcTest(AvailabilityController.class)
 public class AvailabilityControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ObjectMapper objectMapper;
 
     @MockitoBean
     AvailabilityService availabilityService;

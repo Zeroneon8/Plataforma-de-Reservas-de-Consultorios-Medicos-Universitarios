@@ -24,8 +24,10 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.*;
 @WebMvcTest(AppointmentTypeController.class)
 public class AppointmentTypeControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ObjectMapper objectMapper;
 
     @MockitoBean
     AppointmentTypeService appointmentTypeService;

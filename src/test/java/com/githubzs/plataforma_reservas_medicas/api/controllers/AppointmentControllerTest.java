@@ -37,8 +37,10 @@ import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 @WebMvcTest(AppointmentController.class)
 public class AppointmentControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ObjectMapper objectMapper;
 
     @MockitoBean
     AppointmentService appointmentService;
