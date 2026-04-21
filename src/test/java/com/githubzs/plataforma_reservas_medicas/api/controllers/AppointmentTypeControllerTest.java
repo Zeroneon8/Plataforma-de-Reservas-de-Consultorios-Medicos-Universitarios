@@ -49,10 +49,18 @@ public class AppointmentTypeControllerTest {
 
     @Test
     void listShouldReturn200() throws Exception {
-        when (appointmentTypeService.findAll()).thenReturn(List.of());
+        var baseId = UUID.randomUUID();
+
+        var result = List.of(new AppointmentTypeSummaryResponse(baseId, "Consulta", "Consulta médica geral", 30)); 
+
+        when (appointmentTypeService.findAll()).thenReturn(result);
 
         mockMvc.perform(get("/api/appointment-types"))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(baseId.toString()))
+            .andExpect(jsonPath("$[0].name").value("Consulta"))
+            .andExpect(jsonPath("$[0].description").value("Consulta médica geral"))
+            .andExpect(jsonPath("$[0].durationMinutes").value(30));
     }
-    
+
 }
