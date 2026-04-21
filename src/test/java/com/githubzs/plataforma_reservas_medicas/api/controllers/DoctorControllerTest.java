@@ -118,4 +118,34 @@ public class DoctorControllerTest {
             .andExpect(jsonPath("$.id").value(baseId.toString()));
     }
 
+    @Test
+    void updateShouldReturn404WhenDoctorNotFound() throws Exception {
+        var baseId = UUID.randomUUID();
+
+        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null);
+
+        when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Doctor not found"));
+
+        mockMvc.perform(
+            patch("/api/doctors/" + baseId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateShouldReturn404WhenSpecialtyNotFound() throws Exception {
+        var baseId = UUID.randomUUID();
+
+        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", baseId);
+
+        when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Specialty not found"));
+
+        mockMvc.perform(
+            patch("/api/doctors/" + baseId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isNotFound());
+    }
+
 }
