@@ -9,6 +9,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.Appointm
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -23,6 +24,7 @@ public class OfficeDtos {
         String location,
         @Size(max = 255)
         String description,
+        @NotNull
         @Positive
         int roomNumber
     ) implements Serializable {}

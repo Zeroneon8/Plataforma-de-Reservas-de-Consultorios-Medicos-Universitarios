@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -18,6 +19,7 @@ public class AppointmentTypeDtos {
         String name,
         @Size(max = 255)
         String description,
+        @NotNull
         @Positive
         int durationMinutes
     ) implements Serializable {}

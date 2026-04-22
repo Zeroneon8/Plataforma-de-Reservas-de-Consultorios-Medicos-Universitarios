@@ -38,7 +38,6 @@ public class DoctorDtos {
         String fullName,
         @Size(max = 320)
         String email,
-        @NotBlank
         UUID specialtyId
     ) implements Serializable {}
 
