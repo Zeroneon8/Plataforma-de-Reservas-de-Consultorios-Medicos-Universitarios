@@ -26,8 +26,8 @@ public class AppUser {
     private String documentNumber;
 
     @NotBlank
-    @Size(max = 128)
-    @Column(nullable = false, length = 128)
+    @Size(max = 64)
+    @Column(nullable = false, length = 64)
     private String password;
 
     @ElementCollection(fetch = FetchType.EAGER)
