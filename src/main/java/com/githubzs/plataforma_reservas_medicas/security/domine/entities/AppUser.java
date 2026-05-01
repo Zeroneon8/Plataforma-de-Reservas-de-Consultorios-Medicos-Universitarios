@@ -5,6 +5,7 @@ import lombok.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
 import java.util.Set;
 
 @Entity
@@ -17,7 +18,7 @@ public class AppUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
     @NotBlank
     @Size(max = 50)
@@ -34,4 +35,5 @@ public class AppUser {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Set<Role> roles;
+
 }
