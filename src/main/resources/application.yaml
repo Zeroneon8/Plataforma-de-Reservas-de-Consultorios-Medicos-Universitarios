@@ -16,3 +16,14 @@ spring:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  jackson:
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
+
+#configuración de seguridad, en un producto serio no dejar el secret a la vista, usar variables de entorno o un vault
+security:
+  jwt:
+    secret: falseSecret
+    expiration: 3600
