@@ -25,5 +25,5 @@ spring:
 #configuración de seguridad, en un producto serio no dejar el secret a la vista, usar variables de entorno o un vault
 security:
   jwt:
-    secret: falseSecret
-    expiration: 3600
+    secret: "SECRETO_PARA_NADA_EXPUESTO"
+    expiration-seconds: 3600

@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "security.jwt.expiration-seconds"
+}, {
+  "name": "security.jwt.secret"
+}]}
