@@ -36,6 +36,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                 // Endpoints protegidos por rol
+                .requestMatchers(HttpMethod.GET, "/api/patients", "/api/patients/{id}", "/api/doctors", "/api/doctors/{id}",
+                                "/api/specialties", "/api/offices", "/api/appointment-types", "/api/doctors/{doctorId}/schedules",
+                                "/api/appointments", "/api/appointments/{id}", "/api/availability/doctors/{doctorId}",
+                                "/api/availability/doctors/{doctorId}/appointment-types/{appointmentTypeId}").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/appointments/{id}/confirm", "/api/appointments/{id}/cancel",
+                                "/api/appointments/{id}/no-show").hasAnyRole("ADMIN", "STAFF")
+                .requestMatchers(HttpMethod.PATCH, "/api/appointments/{id}/complete").hasAnyRole("ADMIN", "DOCTOR")
+                .requestMatchers(HttpMethod.PATCH, "/api/patients/{id}", "/api/doctors/{id}", "/api/offices/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/reports/**").hasAnyRole("ADMIN", "COORDINATOR")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
