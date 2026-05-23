@@ -1,30 +1,37 @@
 package com.githubzs.plataforma_reservas_medicas.api.controllers;
 
-import java.util.UUID;
-import java.util.List;
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
+import static org.hamcrest.Matchers.endsWith;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.http.MediaType;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import tools.jackson.databind.ObjectMapper;
-
-import com.githubzs.plataforma_reservas_medicas.services.PatientService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.*;
+import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.services.PatientService;
+
+import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(PatientController.class)
 public class PatientControllerTest {
@@ -60,7 +67,8 @@ public class PatientControllerTest {
     void getShouldReturn200() throws Exception {
         var patientId = UUID.randomUUID();
 
-        var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, Instant.now(), null);
+        var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361",  // ← nuevo campo String (ej: teléfono, documento, etc.)
+    "2024114001", Instant.now(), null);
 
         when(patientService.findById(patientId)).thenReturn(response);
 
@@ -87,7 +95,8 @@ public class PatientControllerTest {
     void listShouldReturn200() throws Exception {
         var patientId = UUID.randomUUID();
 
-        var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, Instant.now(), null);
+       var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361",  // ← nuevo campo String (ej: teléfono, documento, etc.)
+    "2024114001", Instant.now(), null);
 
         when(patientService.findAll(PageRequest.of(0, 10, Sort.by("createdAt").ascending()))).thenReturn(new PageImpl<>(List.of(response)));
 
