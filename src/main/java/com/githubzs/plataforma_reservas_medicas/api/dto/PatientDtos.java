@@ -57,7 +57,9 @@ public class PatientDtos {
         String fullName, 
         String email, 
         String phoneNumber,
-        PatientStatus status, 
+        PatientStatus status,
+        String documentNumber,   
+        String studentCode,  
         Instant createdAt, 
         Instant updatedAt
     ) implements Serializable {}
