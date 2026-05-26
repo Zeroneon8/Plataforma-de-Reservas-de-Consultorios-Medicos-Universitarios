@@ -55,7 +55,7 @@ public class DoctorControllerTest {
 
         var request = new DoctorCreateRequest("Dr. House", "house@example.com", "12345", "67890", baseId);
 
-        var response = new DoctorResponse(baseId, "Dr. House", "house@example.com", null, DoctorStatus.ACTIVE, Instant.now(), null, null, null);
+        var response = new DoctorResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.ACTIVE, Instant.now(), null, null, null);
 
         when(doctorService.create(request)).thenReturn(response);
 
@@ -72,7 +72,7 @@ public class DoctorControllerTest {
     void getShouldReturn200() throws Exception {
         var baseId = UUID.randomUUID();
 
-        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", null, DoctorStatus.ACTIVE, Instant.now(), null);
+        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.ACTIVE, Instant.now(), null);
 
         when(doctorService.findById(baseId)).thenReturn(response);
 
@@ -98,7 +98,7 @@ public class DoctorControllerTest {
         var baseId = UUID.randomUUID();
 
         var result = List.of(
-            new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", null, DoctorStatus.ACTIVE, Instant.now(), null));
+            new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.ACTIVE, Instant.now(), null));
 
         when(doctorService.findAll(PageRequest.of(0, 10, Sort.by("createdAt").ascending()))).thenReturn(new PageImpl<>(result));
 
@@ -117,7 +117,7 @@ public class DoctorControllerTest {
 
         var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null);
 
-        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", null, DoctorStatus.ACTIVE, Instant.now(), null);
+        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.ACTIVE, Instant.now(), null);
 
         when(doctorService.update(baseId, request)).thenReturn(response);
 

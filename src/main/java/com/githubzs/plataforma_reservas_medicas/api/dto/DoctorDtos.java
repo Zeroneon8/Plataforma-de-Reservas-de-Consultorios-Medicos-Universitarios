@@ -49,7 +49,9 @@ public class DoctorDtos {
     public record DoctorResponse(
         UUID id, 
         String fullName, 
-        String email,  
+        String email,
+        String licenseNumber,
+        String documentNumber,
         SpecialtySummaryResponse specialty, 
         DoctorStatus status,  
         Instant createdAt,
@@ -61,7 +63,9 @@ public class DoctorDtos {
     public record DoctorSummaryResponse(
         UUID id, 
         String fullName, 
-        String email,  
+        String email,
+        String licenseNumber,
+        String documentNumber,
         SpecialtySummaryResponse specialty, 
         DoctorStatus status,  
         Instant createdAt,

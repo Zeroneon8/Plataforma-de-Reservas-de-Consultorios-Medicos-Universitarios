@@ -57,7 +57,7 @@ public class PatientControllerTest {
 
         var request = new PatientCreateRequest("John Doe", "john.doe@example.com", "1234567890", "123456789", "STU12345");
 
-        var response = new PatientResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, Instant.now(), null, null);
+        var response = new PatientResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "123456789", "STU12345", Instant.now(), null, null);
 
         when(patientService.create(request)).thenReturn(response);
 
@@ -74,8 +74,7 @@ public class PatientControllerTest {
     void getShouldReturn200() throws Exception {
         var patientId = UUID.randomUUID();
 
-        var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361",  // ← nuevo campo String (ej: teléfono, documento, etc.)
-    "2024114001", Instant.now(), null);
+        var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361", "2024114001", Instant.now(), null);
 
         when(patientService.findById(patientId)).thenReturn(response);
 
@@ -102,8 +101,7 @@ public class PatientControllerTest {
     void listShouldReturn200() throws Exception {
         var patientId = UUID.randomUUID();
 
-       var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361",  // ← nuevo campo String (ej: teléfono, documento, etc.)
-    "2024114001", Instant.now(), null);
+       var response = new PatientSummaryResponse(patientId, "John Doe", "john.doe@example.com", "1234567890", PatientStatus.ACTIVE, "1013121361", "2024114001", Instant.now(), null);
 
         when(patientService.findAll(PageRequest.of(0, 10, Sort.by("createdAt").ascending()))).thenReturn(new PageImpl<>(List.of(response)));
 
@@ -123,7 +121,7 @@ public class PatientControllerTest {
 
         var request = new PatientUpdateRequest("John Doe Updated", "john.updated@example.com", null);
 
-        var response = new PatientResponse(patientId, "John Doe Updated", "john.updated@example.com", "1234567890", PatientStatus.ACTIVE, Instant.now(), Instant.now(), null);
+        var response = new PatientResponse(patientId, "John Doe Updated", "john.updated@example.com", "1234567890", PatientStatus.ACTIVE, "123456789", "STU12345", Instant.now(), Instant.now(), null);
 
         when(patientService.update(patientId, request)).thenReturn(response);
 
