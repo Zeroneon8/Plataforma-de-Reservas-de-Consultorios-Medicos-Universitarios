@@ -253,7 +253,7 @@ class OfficeServiceImplTest {
                 .createdAt(Instant.now())
                 .build();
 
-        OfficeUpdateRequest request = new OfficeUpdateRequest("  Consultorio Renovado  ", "  Edificio B  ", "  Piso 2  ", null);
+        OfficeUpdateRequest request = new OfficeUpdateRequest("  Consultorio Renovado  ", "  Edificio B  ", "  Piso 2  ", null, OfficeStatus.UNAVAILABLE);
 
         when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
         when(officeRepository.existsByNameIgnoreCase("Consultorio Renovado")).thenReturn(false);
@@ -266,13 +266,14 @@ class OfficeServiceImplTest {
         assertEquals("Consultorio Renovado", result.name());
         assertEquals("Edificio B", result.location());
         assertEquals("Piso 2", result.description());
+        assertEquals(OfficeStatus.UNAVAILABLE, result.status());
         assertNotNull(result.updatedAt());
         verify(officeRepository).save(any(Office.class));
     }
 
     @Test
     void shouldThrowValidationExceptionWhenIdIsNullForUpdate() {
-        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102);
+        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102, OfficeStatus.AVAILABLE);
 
         assertThrows(ValidationException.class, () -> service.update(null, request));
     }
@@ -284,7 +285,7 @@ class OfficeServiceImplTest {
 
     @Test
     void shouldThrowResourceNotFoundWhenOfficeDoesNotExistForUpdate() {
-        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102);
+        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102, OfficeStatus.AVAILABLE);
 
         when(officeRepository.findById(officeId)).thenReturn(Optional.empty());
 
@@ -304,7 +305,7 @@ class OfficeServiceImplTest {
                 .createdAt(Instant.now())
                 .build();
 
-        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102);
+        OfficeUpdateRequest request = new OfficeUpdateRequest("Consultorio Renovado", "Edificio B", "Piso 2", 102, OfficeStatus.AVAILABLE);
 
         when(officeRepository.findById(officeId)).thenReturn(Optional.of(office));
         when(officeRepository.existsByNameIgnoreCase("Consultorio Renovado")).thenReturn(true);

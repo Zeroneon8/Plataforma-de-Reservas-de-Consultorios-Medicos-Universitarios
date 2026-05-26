@@ -335,7 +335,7 @@ class DoctorServiceImplTest {
                 .createdAt(Instant.now())
                 .build();
 
-        DoctorUpdateRequest request = new DoctorUpdateRequest("  Dr. Wilson  ", " WILSON@Example.com ", newSpecialtyId);
+        DoctorUpdateRequest request = new DoctorUpdateRequest("  Dr. Wilson  ", " WILSON@Example.com ", newSpecialtyId, DoctorStatus.INACTIVE);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
         when(specialtyRepository.findById(newSpecialtyId)).thenReturn(Optional.of(newSpecialty));
@@ -349,13 +349,14 @@ class DoctorServiceImplTest {
         assertEquals("Dr. Wilson", result.fullName());
         assertEquals("wilson@example.com", result.email());
         assertEquals(newSpecialtyId, result.specialty().id());
+        assertEquals(DoctorStatus.INACTIVE, result.status());
         assertNotNull(result.updatedAt());
         verify(doctorRepository).save(any(Doctor.class));
     }
 
     @Test
     void shouldThrowValidationExceptionWhenDoctorIdIsNullForUpdate() {
-        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", specialtyId);
+        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", specialtyId, DoctorStatus.ACTIVE);
 
         assertThrows(ValidationException.class, () -> service.update(null, request));
     }
@@ -367,7 +368,7 @@ class DoctorServiceImplTest {
 
     @Test
     void shouldThrowResourceNotFoundWhenDoctorDoesNotExistForUpdate() {
-        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", specialtyId);
+        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", specialtyId, DoctorStatus.ACTIVE);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
 
@@ -389,7 +390,7 @@ class DoctorServiceImplTest {
                 .status(DoctorStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .build();
-        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", newSpecialtyId);
+        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", "wilson@example.com", newSpecialtyId, DoctorStatus.ACTIVE);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
         when(specialtyRepository.findById(newSpecialtyId)).thenReturn(Optional.empty());
@@ -411,7 +412,7 @@ class DoctorServiceImplTest {
                 .status(DoctorStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .build();
-        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", " WILSON@Example.com ", specialtyId);
+        DoctorUpdateRequest request = new DoctorUpdateRequest("Dr. Wilson", " WILSON@Example.com ", specialtyId, DoctorStatus.ACTIVE);
 
         when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
         when(specialtyRepository.findById(specialtyId)).thenReturn(Optional.of(specialty));

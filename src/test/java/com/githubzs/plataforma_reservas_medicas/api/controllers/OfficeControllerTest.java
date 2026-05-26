@@ -83,9 +83,9 @@ public class OfficeControllerTest {
     void updateShouldReturn200() throws Exception {
         var officeId = UUID.randomUUID();
 
-        var request = new OfficeUpdateRequest("Office 1 Updated", "Mar caribe updated", null, 102);
+        var request = new OfficeUpdateRequest("Office 1 Updated", "Mar caribe updated", null, 102, OfficeStatus.UNAVAILABLE);
 
-        var response = new OfficeResponse(officeId, "Office 1 Updated", "Mar caribe updated", null , 102, OfficeStatus.AVAILABLE, Instant.now(), Instant.now(), null);
+        var response = new OfficeResponse(officeId, "Office 1 Updated", "Mar caribe updated", null , 102, OfficeStatus.UNAVAILABLE, Instant.now(), Instant.now(), null);
 
         when(officeService.update(officeId, request)).thenReturn(response);
 
@@ -97,14 +97,15 @@ public class OfficeControllerTest {
             .andExpect(jsonPath("$.id").value(officeId.toString()))
             .andExpect(jsonPath("$.name").value("Office 1 Updated"))
             .andExpect(jsonPath("$.location").value("Mar caribe updated"))
-            .andExpect(jsonPath("$.roomNumber").value(102));
+            .andExpect(jsonPath("$.roomNumber").value(102))
+            .andExpect(jsonPath("$.status").value("UNAVAILABLE"));
     }
 
     @Test
     void updateShouldReturn404WhenNotFound() throws Exception {
         var officeId = UUID.randomUUID();
 
-        var request = new OfficeUpdateRequest("Office 1 Updated", "Mar caribe updated", null, 102);
+        var request = new OfficeUpdateRequest("Office 1 Updated", "Mar caribe updated", null, 102, OfficeStatus.UNAVAILABLE);
 
         when(officeService.update(officeId, request)).thenThrow(new ResourceNotFoundException("Office not found"));
 

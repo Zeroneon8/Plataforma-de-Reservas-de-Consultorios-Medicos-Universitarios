@@ -119,9 +119,9 @@ public class PatientControllerTest {
     void updateShouldReturn200() throws Exception {
         var patientId = UUID.randomUUID();
 
-        var request = new PatientUpdateRequest("John Doe Updated", "john.updated@example.com", null);
+        var request = new PatientUpdateRequest("John Doe Updated", "john.updated@example.com", null, PatientStatus.INACTIVE);
 
-        var response = new PatientResponse(patientId, "John Doe Updated", "john.updated@example.com", "1234567890", PatientStatus.ACTIVE, "123456789", "STU12345", Instant.now(), Instant.now(), null);
+        var response = new PatientResponse(patientId, "John Doe Updated", "john.updated@example.com", "1234567890", PatientStatus.INACTIVE, "123456789", "STU12345", Instant.now(), Instant.now(), null);
 
         when(patientService.update(patientId, request)).thenReturn(response);
 
@@ -130,14 +130,15 @@ public class PatientControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(patientId.toString()));
+            .andExpect(jsonPath("$.id").value(patientId.toString()))
+            .andExpect(jsonPath("$.status").value("INACTIVE"));
     }
 
     @Test
     void updateShouldReturn404WhenNotFound() throws Exception {
         var patientId = UUID.randomUUID();
 
-        var request = new PatientUpdateRequest("John Doe Updated", "john.updated@example.com", null);
+        var request = new PatientUpdateRequest("John Doe Updated", "john.updated@example.com", null, PatientStatus.INACTIVE);
 
         when(patientService.update(patientId, request)).thenThrow(new ResourceNotFoundException("Patient not found"));
 

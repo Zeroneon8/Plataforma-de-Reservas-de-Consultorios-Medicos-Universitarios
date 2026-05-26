@@ -115,9 +115,9 @@ public class DoctorControllerTest {
     void updateShouldReturn200() throws Exception {
         var baseId = UUID.randomUUID();
 
-        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null);
+        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null, DoctorStatus.INACTIVE);
 
-        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.ACTIVE, Instant.now(), null);
+        var response = new DoctorSummaryResponse(baseId, "Dr. House", "house@example.com", "12345", "67890", null, DoctorStatus.INACTIVE, Instant.now(), null);
 
         when(doctorService.update(baseId, request)).thenReturn(response);
 
@@ -126,14 +126,15 @@ public class DoctorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(baseId.toString()));
+            .andExpect(jsonPath("$.id").value(baseId.toString()))
+            .andExpect(jsonPath("$.status").value("INACTIVE"));
     }
 
     @Test
     void updateShouldReturn404WhenDoctorNotFound() throws Exception {
         var baseId = UUID.randomUUID();
 
-        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null);
+        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", null, DoctorStatus.INACTIVE);
 
         when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Doctor not found"));
 
@@ -148,7 +149,7 @@ public class DoctorControllerTest {
     void updateShouldReturn404WhenSpecialtyNotFound() throws Exception {
         var baseId = UUID.randomUUID();
 
-        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", baseId);
+        var request = new DoctorUpdateRequest("Dr. House", "house@example.com", baseId, DoctorStatus.INACTIVE);
 
         when(doctorService.update(baseId, request)).thenThrow(new ResourceNotFoundException("Specialty not found"));
 

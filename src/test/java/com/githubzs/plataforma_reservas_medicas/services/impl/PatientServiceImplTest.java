@@ -178,7 +178,7 @@ class PatientServiceImplTest {
                 .createdAt(Instant.now())
                 .build();
 
-        var request = new PatientUpdateRequest("Juan P.", "juan.p@example.com", "0987654321");
+        var request = new PatientUpdateRequest("Juan P.", "juan.p@example.com", "0987654321", PatientStatus.SUSPENDED);
         when(repository.findById(patientId)).thenReturn(Optional.of(patient));
         when(repository.save(any(Patient.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -188,6 +188,7 @@ class PatientServiceImplTest {
         assertEquals("Juan P.", result.fullName());
         assertEquals("juan.p@example.com", result.email());
         assertEquals("0987654321", result.phoneNumber());
+        assertEquals(PatientStatus.SUSPENDED, result.status());
         verify(repository).save(any(Patient.class));
     }
 

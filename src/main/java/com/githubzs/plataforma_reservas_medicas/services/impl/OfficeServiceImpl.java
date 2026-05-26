@@ -90,6 +90,9 @@ public class OfficeServiceImpl implements OfficeService {
         String originalName = office.getName();
 
         mapper.patch(request, office);
+        if (request.status() != null) {
+            office.setStatus(request.status());
+        }
 
         // Normalizamos el nombre, la ubicación y la descripción si vienen en la request
         if (request.name() != null) {

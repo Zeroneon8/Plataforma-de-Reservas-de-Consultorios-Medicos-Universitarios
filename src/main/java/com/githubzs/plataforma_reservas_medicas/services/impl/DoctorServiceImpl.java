@@ -166,6 +166,9 @@ public class DoctorServiceImpl implements DoctorService {
             doctor.setEmail(normalizedEmail);
         }
 
+        if (request.status() != null) {
+            doctor.setStatus(request.status());
+        }
         doctor.setUpdatedAt(Instant.now());
         Doctor saved = doctorRepository.save(doctor);
         return summaryMapper.toSummaryResponse(saved);

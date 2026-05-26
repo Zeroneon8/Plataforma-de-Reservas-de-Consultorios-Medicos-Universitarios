@@ -111,6 +111,9 @@ public class PatientServiceImpl implements PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id " + id));
 
         mapper.patch(request, patient);
+        if (request.status() != null) {
+            patient.setStatus(request.status());
+        }
 
         // Normalizamos fullName, email y phoneNumber si vienen en la request
         if (request.fullName() != null) {

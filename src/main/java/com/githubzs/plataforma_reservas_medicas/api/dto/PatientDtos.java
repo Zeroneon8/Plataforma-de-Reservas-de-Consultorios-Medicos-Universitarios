@@ -37,7 +37,8 @@ public class PatientDtos {
         @Size(max = 320)
         String email,
         @Size(max = 20)
-        String phoneNumber
+        String phoneNumber,
+        PatientStatus status
     ) implements Serializable {}
 
        
