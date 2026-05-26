@@ -154,12 +154,12 @@ public class DoctorServiceImpl implements DoctorService {
 
         mapper.patch(request, doctor);
 
-        if (doctor.getFullName() != null) {
-            doctor.setFullName(doctor.getFullName().trim());
+        if (request.fullName() != null) {
+            doctor.setFullName(request.fullName().trim());
         }
 
-        if (doctor.getEmail() != null) {
-            String normalizedEmail = doctor.getEmail().trim().toLowerCase();
+        if (request.email() != null) {
+            String normalizedEmail = request.email().trim().toLowerCase();
             if (!normalizedEmail.equals(doctor.getEmail()) && doctorRepository.existsByEmailIgnoreCase(normalizedEmail)) {
                 throw new ConflictException("A doctor with the same email already exists");
             }
