@@ -31,6 +31,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.repositories.DoctorReposi
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.OfficeRepository;
 import com.githubzs.plataforma_reservas_medicas.domine.repositories.PatientRepository;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
+import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.services.impl.DoctorScheduleServiceImpl;
 
@@ -201,26 +202,26 @@ class AppointmentValidatorTest {
 	}
 
 	@Test
-	void shouldThrowConflictWhenStartAtIsInPast() {
+	void shouldThrowValidationWhenStartAtIsInPast() {
         LocalDateTime baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
 		LocalDateTime startAt = baseDateTime.minusMinutes(1);
 		LocalDateTime endAt = baseDateTime.plusMinutes(20);
 
-		ConflictException ex = assertThrows(ConflictException.class,
+		ValidationException ex = assertThrows(ValidationException.class,
 				() -> validator.validateAppointmentStartAtEndAt(startAt, endAt));
 
-		assertEquals("Cannot create appointment in the past", ex.getMessage());
+		assertEquals("Invalid appointment date times", ex.getMessage());
 	}
 
 	@Test
-	void shouldThrowConflictWhenEndAtIsNotAfterStartAt() {
+	void shouldThrowValidationWhenEndAtIsNotAfterStartAt() {
         LocalDateTime startAt = LocalDateTime.now().plusMinutes(20);
 		LocalDateTime endAt = startAt;
 
-		ConflictException ex = assertThrows(ConflictException.class,
+		ValidationException ex = assertThrows(ValidationException.class,
 				() -> validator.validateAppointmentStartAtEndAt(startAt, endAt));
 
-		assertEquals("Appointment end time must be after start time", ex.getMessage());
+		assertEquals("Invalid appointment date times", ex.getMessage());
 	}
 
 	@Test
