@@ -5,8 +5,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -21,8 +24,16 @@ import tools.jackson.databind.ObjectMapper;
 
 import com.githubzs.plataforma_reservas_medicas.services.AppointmentTypeService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.*;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
-@WebMvcTest(AppointmentTypeController.class)
+@WebMvcTest(
+    controllers = AppointmentTypeController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class AppointmentTypeControllerTest {
 
     @Autowired

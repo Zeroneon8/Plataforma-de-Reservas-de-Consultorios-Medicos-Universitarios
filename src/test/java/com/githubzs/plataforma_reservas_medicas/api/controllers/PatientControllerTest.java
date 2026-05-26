@@ -8,7 +8,10 @@ import static org.hamcrest.Matchers.endsWith;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,17 +26,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.*;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.PatientDtos.PatientUpdateRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.services.PatientService;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
 import tools.jackson.databind.ObjectMapper;
 
-@WebMvcTest(PatientController.class)
+@WebMvcTest(
+    controllers = PatientController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class PatientControllerTest {
 
     @Autowired

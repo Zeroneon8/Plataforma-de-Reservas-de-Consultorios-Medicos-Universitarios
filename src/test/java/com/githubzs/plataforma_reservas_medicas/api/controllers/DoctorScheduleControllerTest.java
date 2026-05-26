@@ -6,8 +6,11 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -24,8 +27,16 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorScheduleDtos.*;
 import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
-@WebMvcTest(DoctorScheduleController.class)
+@WebMvcTest(
+    controllers = DoctorScheduleController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class DoctorScheduleControllerTest {
 
     @Autowired

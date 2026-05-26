@@ -5,8 +5,11 @@ import java.util.List;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -22,8 +25,16 @@ import com.githubzs.plataforma_reservas_medicas.services.OfficeService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.*;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
-@WebMvcTest(OfficeController.class)
+@WebMvcTest(
+    controllers = OfficeController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class OfficeControllerTest {
 
     @Autowired

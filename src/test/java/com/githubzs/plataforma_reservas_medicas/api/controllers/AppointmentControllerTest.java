@@ -10,7 +10,10 @@ import static org.hamcrest.Matchers.endsWith;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,8 +36,16 @@ import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolatio
 import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
-@WebMvcTest(AppointmentController.class)
+@WebMvcTest(
+    controllers = AppointmentController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class AppointmentControllerTest {
 
     @Autowired

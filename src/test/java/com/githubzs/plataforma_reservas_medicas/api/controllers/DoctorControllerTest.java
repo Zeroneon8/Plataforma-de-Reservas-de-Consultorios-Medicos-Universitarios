@@ -9,8 +9,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -26,8 +29,16 @@ import com.githubzs.plataforma_reservas_medicas.services.DoctorService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.*;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
+import com.githubzs.plataforma_reservas_medicas.security.jwt.JwtAuthenticationFilter;
 
-@WebMvcTest(DoctorController.class)
+@WebMvcTest(
+    controllers = DoctorController.class,
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = JwtAuthenticationFilter.class
+    )
+)
+@AutoConfigureMockMvc(addFilters = false)
 public class DoctorControllerTest {
 
     @Autowired
