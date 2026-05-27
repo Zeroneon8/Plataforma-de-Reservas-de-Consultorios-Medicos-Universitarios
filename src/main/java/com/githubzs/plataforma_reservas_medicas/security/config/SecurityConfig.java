@@ -42,58 +42,96 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/actuator/health").permitAll()
 
-                // ── Solo lectura: ADMIN y STAFF ────────────────────────────────────
-                // Recursos que el doctor no necesita ver
+                // ── Pacientes: ADMIN y STAFF ───────────────────────────────────────
                 .requestMatchers(HttpMethod.GET,
-                    "/api/patients", "/api/patients/{id}",
-                    "/api/offices",
-                    "/api/doctors/{doctorId}/schedules",
+                    "/api/patients",
+                    "/api/patients/{id}"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(HttpMethod.PATCH,
+                    "/api/patients/{id}"
+                ).hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST,
+                    "/api/patients"
+                ).hasRole("ADMIN")
+
+                // ── Doctores: ADMIN y STAFF ────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET,
+                    "/api/doctors",
+                    "/api/doctors/{id}",
+                    "/api/doctors/{doctorId}/schedules"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(HttpMethod.PATCH,
+                    "/api/doctors/{id}"
+                ).hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST,
+                    "/api/doctors",
+                    "/api/doctors/{doctorId}/schedules"
+                ).hasRole("ADMIN")
+
+                // ── Consultorios: ADMIN y STAFF ────────────────────────────────────
+                .requestMatchers(HttpMethod.GET,
+                    "/api/offices"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(HttpMethod.PATCH,
+                    "/api/offices/{id}"
+                ).hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST,
+                    "/api/offices"
+                ).hasRole("ADMIN")
+
+                // ── Catálogos: ADMIN y STAFF ───────────────────────────────────────
+                .requestMatchers(HttpMethod.GET,
+                    "/api/specialties",
+                    "/api/appointment-types"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                .requestMatchers(HttpMethod.POST,
+                    "/api/specialties",
+                    "/api/appointment-types"
+                ).hasRole("ADMIN")
+
+                // ── Disponibilidad: ADMIN y STAFF ──────────────────────────────────
+                .requestMatchers(HttpMethod.GET,
                     "/api/availability/doctors/{doctorId}",
                     "/api/availability/doctors/{doctorId}/appointment-types/{appointmentTypeId}"
                 ).hasAnyRole("ADMIN", "STAFF")
 
-                // ── Solo lectura: ADMIN, STAFF y DOCTOR ───────────────────────────
-                // El doctor necesita ver citas para completarlas,
-                // y los catálogos para entender el contexto de cada cita.
+                // ── Citas: lectura — ADMIN, STAFF y DOCTOR ────────────────────────
+                // DOCTOR solo necesita ver citas para poder completarlas.
+                // El filtrado por doctor se maneja en el servicio con el JWT.
                 .requestMatchers(HttpMethod.GET,
-                    "/api/appointments", "/api/appointments/{id}",
-                    "/api/doctors", "/api/doctors/{id}",
-                    "/api/specialties",
-                    "/api/appointment-types"
+                    "/api/appointments",
+                    "/api/appointments/{id}"
                 ).hasAnyRole("ADMIN", "STAFF", "DOCTOR")
 
-                // ── Acciones sobre citas: ADMIN y STAFF ───────────────────────────
+                // ── Citas: creación — ADMIN y STAFF ───────────────────────────────
+                .requestMatchers(HttpMethod.POST,
+                    "/api/appointments"
+                ).hasAnyRole("ADMIN", "STAFF")
+
+                // ── Citas: transiciones de estado ──────────────────────────────────
                 .requestMatchers(HttpMethod.PATCH,
                     "/api/appointments/{id}/confirm",
                     "/api/appointments/{id}/cancel"
                 ).hasAnyRole("ADMIN", "STAFF")
 
-                // ── Completar cita: solo DOCTOR ────────────────────────────────────
                 .requestMatchers(HttpMethod.PATCH,
                     "/api/appointments/{id}/complete"
                 ).hasRole("DOCTOR")
 
-                // ── No-show y edición de entidades: solo ADMIN ────────────────────
                 .requestMatchers(HttpMethod.PATCH,
-                    "/api/patients/{id}",
-                    "/api/doctors/{id}",
-                    "/api/offices/{id}",
                     "/api/appointments/{id}/no-show"
                 ).hasRole("ADMIN")
 
-                // ── Creación: ADMIN y STAFF ────────────────────────────────────────
-                .requestMatchers(HttpMethod.POST,
-                    "/api/appointments"
-                ).hasAnyRole("ADMIN", "STAFF")
-
-                // ── Creación de entidades maestras: solo ADMIN ────────────────────
-                .requestMatchers(HttpMethod.POST,
-                    "/api/patients", "/api/doctors", "/api/offices",
-                    "/api/specialties", "/api/appointment-types",
-                    "/api/doctors/{doctorId}/schedules"
-                ).hasRole("ADMIN")
-
                 // ── Reportes: ADMIN y COORDINATOR ─────────────────────────────────
+                // COORDINATOR solo opera aquí. El dashboard lee este endpoint
+                // para mostrarle el ranking de productividad.
                 .requestMatchers(HttpMethod.GET,
                     "/api/reports/**"
                 ).hasAnyRole("ADMIN", "COORDINATOR")
