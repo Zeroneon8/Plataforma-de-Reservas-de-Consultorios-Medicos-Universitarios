@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.ArgumentMatchers;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
@@ -13,17 +15,24 @@ import static org.mockito.Mockito.never;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.lang.reflect.Field;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
@@ -41,6 +50,7 @@ import com.githubzs.plataforma_reservas_medicas.services.mapper.PatientSummaryMa
 import com.githubzs.plataforma_reservas_medicas.services.mapper.SpecialtySummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentSummaryMapperImpl;
+import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentStatusUpdateMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentTypeSummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.DoctorSummaryMapperImpl;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.OfficeSummaryMapperImpl;
@@ -59,6 +69,7 @@ class AppointmentServiceImplTest {
 
     private UUID patientId;
     private UUID doctorId;
+    private String doctorDocumentNumber;
     private UUID officeId;
     private UUID appointmentTypeId;
     private UUID appointmentId;
@@ -69,6 +80,7 @@ class AppointmentServiceImplTest {
     void setUp() throws Exception {
         patientId = UUID.randomUUID();
         doctorId = UUID.randomUUID();
+        doctorDocumentNumber = "123456789";
         officeId = UUID.randomUUID();
         appointmentTypeId = UUID.randomUUID();
         appointmentId = UUID.randomUUID();
@@ -80,11 +92,11 @@ class AppointmentServiceImplTest {
         var doctorSummaryMapperImpl = new DoctorSummaryMapperImpl();
         var appointmentSummaryMapperImpl = new AppointmentSummaryMapperImpl();
         var appointmentMapperImpl = new AppointmentMapperImpl();
+        var appointmentStatusUpdateMapperImpl = new AppointmentStatusUpdateMapperImpl();
     
         setField(doctorSummaryMapperImpl, "specialtySummaryMapper", specialtySummaryMapperImpl);
     
         setField(appointmentSummaryMapperImpl, "patientSummaryMapper", patientSummaryMapperImpl);
-        setField(appointmentSummaryMapperImpl, "doctorSummaryMapper", doctorSummaryMapperImpl);
     
         setField(appointmentMapperImpl, "patientSummaryMapper", patientSummaryMapperImpl);
         setField(appointmentMapperImpl, "doctorSummaryMapper", doctorSummaryMapperImpl);
@@ -94,6 +106,7 @@ class AppointmentServiceImplTest {
         // overwrite the service fields created by @InjectMocks with our real mappers
         setField(service, "mapper", appointmentMapperImpl);
         setField(service, "summaryMapper", appointmentSummaryMapperImpl);
+        setField(service, "statusUpdateMapper", appointmentStatusUpdateMapperImpl);
     }
     
     // Metodo helper para setear las dependencias de los mappers manualmente
@@ -443,6 +456,131 @@ class AppointmentServiceImplTest {
         assertThrows(ConflictException.class, () -> service.create(request));
         verify(validator).validateNoOverlapForPatient(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldFindByDoctorDocumentNumberWhenValid() {
+        var pageable = PageRequest.of(0, 5);
+        var doctor = Doctor.builder().id(doctorId).documentNumber(doctorDocumentNumber).status(DoctorStatus.ACTIVE).build();
+        var patient = Patient.builder().id(patientId).build();
+
+        var appointment1 = Appointment.builder()
+            .id(UUID.randomUUID())
+            .doctor(doctor)
+            .patient(patient)
+            .status(AppointmentStatus.CONFIRMED)
+            .startAt(baseDateTime)
+            .endAt(baseDateTime.plusMinutes(30))
+            .build();
+        var appointment2 = Appointment.builder()
+            .id(UUID.randomUUID())
+            .doctor(doctor)
+            .patient(patient)
+            .status(AppointmentStatus.SCHEDULED)
+            .startAt(baseDateTime.plusHours(1))
+            .endAt(baseDateTime.plusHours(1).plusMinutes(30))
+            .build();
+
+        when(validator.validateDoctorExistsAndActiveByDocumentNumber(doctorDocumentNumber)).thenReturn(doctor);
+        when(appointmentRepository.findByDoctor_DocumentNumber(doctorDocumentNumber, pageable))
+            .thenReturn(new PageImpl<>(List.of(appointment1, appointment2), pageable, 2));
+
+        var result = service.findByDoctorDocumentNumber(doctorDocumentNumber, pageable);
+
+        assertEquals(2, result.getContent().size());
+        assertEquals(appointment1.getId(), result.getContent().get(0).id());
+        assertEquals(appointment2.getId(), result.getContent().get(1).id());
+        verify(validator).validateDoctorExistsAndActiveByDocumentNumber(doctorDocumentNumber);
+        verify(appointmentRepository).findByDoctor_DocumentNumber(doctorDocumentNumber, pageable);
+    }
+
+    @Test
+    void shouldUseDefaultPageableWhenNullForFindByDoctorDocumentNumber() {
+        var doctor = Doctor.builder().id(doctorId).documentNumber(doctorDocumentNumber).status(DoctorStatus.ACTIVE).build();
+
+        when(validator.validateDoctorExistsAndActiveByDocumentNumber(doctorDocumentNumber)).thenReturn(doctor);
+        when(appointmentRepository.findByDoctor_DocumentNumber(eq(doctorDocumentNumber), any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of()));
+
+        var result = service.findByDoctorDocumentNumber(doctorDocumentNumber, null);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(appointmentRepository).findByDoctor_DocumentNumber(eq(doctorDocumentNumber), pageableCaptor.capture());
+        assertEquals(10, pageableCaptor.getValue().getPageSize());
+        assertEquals(0, pageableCaptor.getValue().getPageNumber());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenDoctorDocumentNumberIsNullForFindByDoctorDocumentNumber() {
+        assertThrows(ValidationException.class, () -> service.findByDoctorDocumentNumber(null, PageRequest.of(0, 5)));
+        verify(validator, never()).validateDoctorExistsAndActiveByDocumentNumber(any());
+        verify(appointmentRepository, never()).findByDoctor_DocumentNumber(any(), any());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenDoctorDoesNotExistForFindByDoctorDocumentNumber() {
+        when(validator.validateDoctorExistsAndActiveByDocumentNumber(doctorDocumentNumber))
+            .thenThrow(new ResourceNotFoundException("Doctor not found with document number " + doctorDocumentNumber));
+
+        assertThrows(ResourceNotFoundException.class, () -> service.findByDoctorDocumentNumber(doctorDocumentNumber, PageRequest.of(0, 5)));
+        verify(validator).validateDoctorExistsAndActiveByDocumentNumber(doctorDocumentNumber);
+        verify(appointmentRepository, never()).findByDoctor_DocumentNumber(any(), any());
+    }
+
+    @Test
+    void shouldFindAllWithFiltersWhenValidRequest() {
+        var pageable = PageRequest.of(0, 10);
+        var request = new AppointmentSearchRequest(patientId, doctorId, officeId, null, baseDateTime, baseDateTime.plusHours(2), AppointmentStatus.CONFIRMED);
+
+        var patient = Patient.builder().id(patientId).build();
+        var doctor = Doctor.builder().id(doctorId).build();
+        var office = Office.builder().id(officeId).build();
+        var type = AppointmentType.builder().id(appointmentTypeId).durationMinutes(30).build();
+
+        var appointment = Appointment.builder()
+            .id(appointmentId)
+            .patient(patient)
+            .doctor(doctor)
+            .office(office)
+            .appointmentType(type)
+            .startAt(baseDateTime)
+            .endAt(baseDateTime.plusMinutes(30))
+            .status(AppointmentStatus.CONFIRMED)
+            .build();
+
+        when(appointmentRepository.findAll(ArgumentMatchers.<Specification<Appointment>>any(), eq(pageable)))
+            .thenReturn(new PageImpl<>(List.of(appointment), pageable, 1));
+
+        var result = service.findAll(request, pageable);
+
+        assertEquals(1, result.getContent().size());
+        assertEquals(appointmentId, result.getContent().get(0).id());
+        assertEquals(patientId, result.getContent().get(0).patient().id());
+        assertEquals(doctorId, result.getContent().get(0).doctor().id());
+        verify(appointmentRepository).findAll(ArgumentMatchers.<Specification<Appointment>>any(), eq(pageable));
+    }
+
+    @Test
+    void shouldUseDefaultPageableWhenNullForFindAll() {
+        when(appointmentRepository.findAll(ArgumentMatchers.<Specification<Appointment>>any(), any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of()));
+
+        var result = service.findAll(null, null);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(appointmentRepository).findAll(ArgumentMatchers.<Specification<Appointment>>any(), pageableCaptor.capture());
+        assertEquals(10, pageableCaptor.getValue().getPageSize());
+        assertEquals(0, pageableCaptor.getValue().getPageNumber());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenStartAtAfterEndAtForFindAll() {
+        var request = new AppointmentSearchRequest(null, null, null, null, baseDateTime.plusHours(2), baseDateTime, null);
+
+        assertThrows(ValidationException.class, () -> service.findAll(request, PageRequest.of(0, 10)));
+        verify(appointmentRepository, never()).findAll(ArgumentMatchers.<Specification<Appointment>>any(), any(Pageable.class));
     }
 
     @Test

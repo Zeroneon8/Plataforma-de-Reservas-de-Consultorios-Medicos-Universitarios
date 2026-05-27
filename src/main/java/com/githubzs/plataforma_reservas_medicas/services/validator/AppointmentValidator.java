@@ -23,7 +23,7 @@ import com.githubzs.plataforma_reservas_medicas.domine.enums.OfficeStatus;
 import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.exception.ResourceNotFoundException;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
-import com.githubzs.plataforma_reservas_medicas.services.impl.DoctorScheduleServiceImpl;
+import com.githubzs.plataforma_reservas_medicas.services.DoctorScheduleService;
 import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
 
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public class AppointmentValidator {
     private final DoctorRepository doctorRepository;
     private final OfficeRepository officeRepository;
     private final AppointmentTypeRepository appointmentTypeRepository;
-    private final DoctorScheduleServiceImpl doctorScheduleServiceImpl;
+    private final DoctorScheduleService doctorScheduleService;
 
     public Appointment validateAppointmentExists(UUID appointmentId) {
         return appointmentRepository.findById(appointmentId)
@@ -57,6 +57,16 @@ public class AppointmentValidator {
     public Doctor validateDoctorExistsAndActive(UUID doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id " + doctorId));
+        if (doctor.getStatus() != DoctorStatus.ACTIVE) {
+            throw new ConflictException("Doctor is not active");
+        }
+
+        return doctor;
+    }
+
+    public Doctor validateDoctorExistsAndActiveByDocumentNumber(String documentNumber) {
+        Doctor doctor = doctorRepository.findByDocumentNumber(documentNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with document number " + documentNumber));
         if (doctor.getStatus() != DoctorStatus.ACTIVE) {
             throw new ConflictException("Doctor is not active");
         }
@@ -101,7 +111,7 @@ public class AppointmentValidator {
     }
 
     public void validateAppointmentWithinDoctorSchedule(UUID doctorId, LocalDateTime startAt, LocalDateTime endAt) {
-        if (!doctorScheduleServiceImpl.isWithinSchedule(doctorId, startAt, endAt)) {
+        if (!doctorScheduleService.isWithinSchedule(doctorId, startAt, endAt)) {
             throw new ConflictException("Appointment time is outside of doctor's schedule");
         }
     }

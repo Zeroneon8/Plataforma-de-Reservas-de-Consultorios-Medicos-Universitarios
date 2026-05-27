@@ -11,12 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.*;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Appointment;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.AppointmentType;
 import com.githubzs.plataforma_reservas_medicas.domine.entities.Doctor;
@@ -28,6 +23,7 @@ import com.githubzs.plataforma_reservas_medicas.exception.ConflictException;
 import com.githubzs.plataforma_reservas_medicas.services.AppointmentService;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentMapper;
 import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentSummaryMapper;
+import com.githubzs.plataforma_reservas_medicas.services.mapper.AppointmentStatusUpdateMapper;
 import com.githubzs.plataforma_reservas_medicas.services.validator.AppointmentValidator;
 import com.githubzs.plataforma_reservas_medicas.exception.ValidationException;
 import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
@@ -41,6 +37,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper mapper;
     private final AppointmentSummaryMapper summaryMapper;
+    private final AppointmentStatusUpdateMapper statusUpdateMapper;
     private final AppointmentValidator validator;
 
     @Override
@@ -99,7 +96,24 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponse> findAll(AppointmentSearchRequest request, Pageable pageable) {
+    public Page<AppointmentSummaryResponse> findByDoctorDocumentNumber(String documentNumber, Pageable pageable) {
+        if (documentNumber == null || documentNumber.isBlank()) {
+            throw new ValidationException("Doctor document number is required",
+                List.of(new FieldViolation("documentNumber", "is required")));
+        }
+
+        String normalizedDocumentNumber = documentNumber.trim();
+        Doctor doctor = validator.validateDoctorExistsAndActiveByDocumentNumber(normalizedDocumentNumber);
+
+        Pageable finalPageable = pageable == null ? Pageable.ofSize(10) : pageable;
+
+        return appointmentRepository.findByDoctor_DocumentNumber(doctor.getDocumentNumber(), finalPageable)
+            .map(summaryMapper::toSummaryResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponse> findAll(AppointmentSearchRequest request, Pageable pageable) {
         AppointmentSearchRequest requestCopy = request == null ? new AppointmentSearchRequest(null, null, null, null, null, null, null) : request;
         
         if (requestCopy.startAt() != null && requestCopy.endAt() != null && requestCopy.startAt().isAfter(requestCopy.endAt())) {
@@ -133,12 +147,12 @@ public class AppointmentServiceImpl implements AppointmentService {
             spec = spec.and((root, query, cb) -> cb.lessThan(root.get("startAt"), requestCopy.endAt()));
         }
 
-        return appointmentRepository.findAll(spec, finalPageable).map(summaryMapper::toSummaryResponse);
+        return appointmentRepository.findAll(spec, finalPageable).map(mapper::toResponse);
     }
 
     @Override
     @Transactional
-    public AppointmentSummaryResponse confirm(UUID id) {
+    public AppointmentStatusUpdateResponse confirm(UUID id) {
         if (id == null) {
             throw new ValidationException("Appointment id is required",
                 List.of(new FieldViolation("id", "is required")));
@@ -154,12 +168,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CONFIRMED);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return summaryMapper.toSummaryResponse(saved);
+        return statusUpdateMapper.toStatusUpdateResponse(saved);
     }
 
     @Override
     @Transactional
-    public AppointmentSummaryResponse cancel(UUID id, AppointmentCancelRequest request) {
+    public AppointmentStatusUpdateResponse cancel(UUID id, AppointmentCancelRequest request) {
         if (id == null) {
             throw new ValidationException("Appointment id is required",
                 List.of(new FieldViolation("id", "is required")));
@@ -188,12 +202,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return summaryMapper.toSummaryResponse(saved);
+        return statusUpdateMapper.toStatusUpdateResponse(saved);
     }
 
     @Override
     @Transactional
-    public AppointmentSummaryResponse complete(UUID id, AppointmentCompleteRequest request) {
+    public AppointmentStatusUpdateResponse complete(UUID id, AppointmentCompleteRequest request) {
         if (id == null) {
             throw new ValidationException("Appointment id is required",
                 List.of(new FieldViolation("id", "is required")));
@@ -222,12 +236,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return summaryMapper.toSummaryResponse(saved);
+        return statusUpdateMapper.toStatusUpdateResponse(saved);
     }
 
     @Override
     @Transactional
-    public AppointmentSummaryResponse markNoShow(UUID id) {
+    public AppointmentStatusUpdateResponse markNoShow(UUID id) {
         if (id == null) {
             throw new ValidationException("Appointment id is required",
                 List.of(new FieldViolation("id", "is required")));
@@ -249,7 +263,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.NO_SHOW);
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
-        return summaryMapper.toSummaryResponse(saved);
+        return statusUpdateMapper.toStatusUpdateResponse(saved);
     }
 
 }

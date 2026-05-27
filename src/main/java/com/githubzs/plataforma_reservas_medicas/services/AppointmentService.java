@@ -10,6 +10,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.Appointm
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentStatusUpdateResponse;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 
 public interface AppointmentService {
@@ -18,14 +19,16 @@ public interface AppointmentService {
 
     AppointmentResponse findById(UUID id);
 
-    Page<AppointmentSummaryResponse> findAll(AppointmentSearchRequest request, Pageable pageable);
+    Page<AppointmentSummaryResponse> findByDoctorDocumentNumber(String documentNumber, Pageable pageable);
 
-    AppointmentSummaryResponse confirm(UUID id);
+    Page<AppointmentResponse> findAll(AppointmentSearchRequest request, Pageable pageable);
 
-    AppointmentSummaryResponse cancel(UUID id, AppointmentCancelRequest request);
+    AppointmentStatusUpdateResponse confirm(UUID id);
 
-    AppointmentSummaryResponse complete(UUID id, AppointmentCompleteRequest request);
+    AppointmentStatusUpdateResponse cancel(UUID id, AppointmentCancelRequest request);
 
-    AppointmentSummaryResponse markNoShow(UUID id);
+    AppointmentStatusUpdateResponse complete(UUID id, AppointmentCompleteRequest request);
+
+    AppointmentStatusUpdateResponse markNoShow(UUID id);
     
 }

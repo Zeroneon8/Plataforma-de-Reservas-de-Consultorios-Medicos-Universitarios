@@ -61,9 +61,19 @@ public class AppointmentDtos {
     public record AppointmentSummaryResponse(
         UUID id,
         PatientSummaryResponse patient,
-        DoctorSummaryResponse doctor,
+        OfficeSummaryResponse office,
+        AppointmentTypeSummaryResponse appointmentType,
         LocalDateTime startAt,
         LocalDateTime endAt,
+        AppointmentStatus status,
+        String cancelReason,
+        String observations,
+        Instant createdAt,
+        Instant updatedAt
+    ) implements Serializable {}
+
+    public record AppointmentStatusUpdateResponse(
+        UUID id,
         AppointmentStatus status,
         String cancelReason,
         String observations,

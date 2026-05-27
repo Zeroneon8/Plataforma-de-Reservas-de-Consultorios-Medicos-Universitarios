@@ -208,6 +208,65 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
+    @DisplayName("Appointment: Encuentra citas de un doctor por su numero de documento")
+    void shouldFindByDoctorDocumentNumber() {
+        // Given
+        var doctor2 = doctorRepository.save(
+            Doctor.builder()
+                .fullName("Dr. Strange")
+                .documentNumber("666666")
+                .licenseNumber("LIC-002")
+                .email("drstrange@doctor.com")
+                .status(DoctorStatus.ACTIVE)
+                .specialty(specialty)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        var appointment1 = appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var appointment2 = appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+        appointmentRepository.save(
+            Appointment.builder()
+                .patient(patient)
+                .doctor(doctor2)
+                .office(office)
+                .appointmentType(appointmentType)
+                .startAt(baseDateTime.plusHours(2))
+                .endAt(baseDateTime.plusHours(2).plusMinutes(appointmentType.getDurationMinutes()))
+                .status(AppointmentStatus.SCHEDULED)
+                .createdAt(Instant.now())
+                .build()
+        );
+
+        // When
+        var found = appointmentRepository.findByDoctor_DocumentNumber(doctor.getDocumentNumber(), Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).hasSize(2);
+        assertThat(found).extracting(Appointment::getId)
+            .containsExactlyInAnyOrder(appointment1.getId(), appointment2.getId());
+        assertThat(found).extracting(Appointment::getDoctor)
+            .extracting(Doctor::getDocumentNumber)
+            .containsOnly(doctor.getDocumentNumber());
+        assertThat(found).extracting(Appointment::getStatus)
+            .containsExactlyInAnyOrder(AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("Appointment: No encuentra citas cuando el doctor no coincide")
+    void shouldReturnEmptyWhenDoctorDoesNotMatchForFindByDoctorDocumentNumber() {
+        // Given
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        var altDocumentNumber = doctor.getDocumentNumber() + "-ALT";
+
+        // When
+        var found = appointmentRepository.findByDoctor_DocumentNumber(altDocumentNumber, Pageable.ofSize(10));
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+
+    @Test
     @DisplayName("Appointment: Encuentra citas por el rango de fechas indicado")
     void shouldFindByStartAtBetween() {
         // Given

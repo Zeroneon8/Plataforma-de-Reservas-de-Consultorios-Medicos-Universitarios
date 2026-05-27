@@ -1,6 +1,7 @@
 package com.githubzs.plataforma_reservas_medicas.api.controllers;
 
 import java.util.UUID;
+import java.security.Principal;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,12 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.*;
 import com.githubzs.plataforma_reservas_medicas.services.AppointmentService;
 
 import jakarta.validation.Valid;
@@ -49,29 +45,42 @@ public class AppointmentController {
        return ResponseEntity.ok(appointmentService.findById(id));
     }
 
+      @GetMapping("/mine")
+      public ResponseEntity<Page<AppointmentSummaryResponse>> listMine(
+                  Principal principal,
+                  @RequestParam(defaultValue = "0") int page,
+                  @RequestParam(defaultValue = "10") int size) {
+            var documentNumber = principal != null ? principal.getName() : null;
+            var result = appointmentService.findByDoctorDocumentNumber(
+                  documentNumber,
+                  PageRequest.of(page, size, Sort.by("createdAt").ascending())
+            );
+            return ResponseEntity.ok(result);
+      }
+
     @GetMapping
-    public ResponseEntity<Page<AppointmentSummaryResponse>> list(@Valid @ModelAttribute AppointmentSearchRequest request, @RequestParam (defaultValue = "0") int page, @RequestParam (defaultValue = "10") int size) {
+    public ResponseEntity<Page<AppointmentResponse>> list(@Valid @ModelAttribute AppointmentSearchRequest request, @RequestParam (defaultValue = "0") int page, @RequestParam (defaultValue = "10") int size) {
        var result = appointmentService.findAll(request,PageRequest.of(page, size, Sort.by("createdAt").ascending()));
        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/{id}/confirm")
-    public ResponseEntity<AppointmentSummaryResponse> patchConfirm(@PathVariable UUID id) {
+    public ResponseEntity<AppointmentStatusUpdateResponse> patchConfirm(@PathVariable UUID id) {
           return ResponseEntity.ok(appointmentService.confirm(id));
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<AppointmentSummaryResponse> patchCancel(@PathVariable UUID id, @Valid @RequestBody AppointmentCancelRequest request) {
+    public ResponseEntity<AppointmentStatusUpdateResponse> patchCancel(@PathVariable UUID id, @Valid @RequestBody AppointmentCancelRequest request) {
           return ResponseEntity.ok(appointmentService.cancel(id, request));
     }
 
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<AppointmentSummaryResponse> patchComplete(@PathVariable UUID id, @Valid @RequestBody AppointmentCompleteRequest request) {
+    public ResponseEntity<AppointmentStatusUpdateResponse> patchComplete(@PathVariable UUID id, @Valid @RequestBody AppointmentCompleteRequest request) {
           return ResponseEntity.ok(appointmentService.complete(id, request));
     }
 
     @PatchMapping("/{id}/no-show")
-    public ResponseEntity<AppointmentSummaryResponse> patchNoShow(@PathVariable UUID id) {
+    public ResponseEntity<AppointmentStatusUpdateResponse> patchNoShow(@PathVariable UUID id) {
           return ResponseEntity.ok(appointmentService.markNoShow(id));
     }
 

@@ -133,8 +133,10 @@ public class AppointmentControllerTest {
         
         var request = new AppointmentSearchRequest(null, null, null, null, baseDateTime, null, null);
         
-        var response = new AppointmentSummaryResponse(
+        var response = new AppointmentResponse(
             baseId,
+            null,
+            null,
             null,
             null,
             baseDateTime,
@@ -154,6 +156,41 @@ public class AppointmentControllerTest {
                 .param("startAt", baseDateTime.format(dtFmt))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content[0].id").value(baseId.toString()));
+    }
+
+    @Test
+    void listMineShouldReturn200() throws Exception {
+        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
+        var baseId = UUID.randomUUID();
+        var documentNumber = "111111";
+
+        var response = new AppointmentSummaryResponse(
+            baseId,
+            null,
+            null,
+            null,
+            baseDateTime,
+            baseDateTime.plusMinutes(30),
+            AppointmentStatus.SCHEDULED,
+            null,
+            null,
+            Instant.now().minusSeconds(6000000),
+            null
+        );
+
+        when(appointmentService.findByDoctorDocumentNumber(
+            documentNumber,
+            PageRequest.of(0, 10, Sort.by("createdAt").ascending())
+        )).thenReturn(new PageImpl<>(List.of(response)));
+
+        mockMvc.perform(
+            get("/api/appointments/mine")
+                .principal(() -> documentNumber)
+                .param("page", "0")
+                .param("size", "10")
+        )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content[0].id").value(baseId.toString()));
     }
@@ -182,17 +219,12 @@ public class AppointmentControllerTest {
 
     @Test
     void patchCancelShouldReturn200() throws Exception {
-        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
         var baseId = UUID.randomUUID();
         
         var request = new AppointmentCancelRequest("Patient requested cancellation");
 
-        var response = new AppointmentSummaryResponse(
+        var response = new AppointmentStatusUpdateResponse(
             baseId,
-            null,
-            null,
-            baseDateTime,
-            baseDateTime.plusMinutes(30),
             AppointmentStatus.CANCELLED,
             "Patient requested cancellation",
             null,
@@ -213,17 +245,12 @@ public class AppointmentControllerTest {
 
     @Test
     void patchCompleteShouldReturn200() throws Exception {
-        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
         var baseId = UUID.randomUUID();
         
         var request = new AppointmentCompleteRequest("Patient has fully recovered");
 
-        var response = new AppointmentSummaryResponse(
+        var response = new AppointmentStatusUpdateResponse(
             baseId,
-            null,
-            null,
-            baseDateTime,
-            baseDateTime.plusMinutes(30),
             AppointmentStatus.COMPLETED,
             null,
             "Patient has fully recovered",
@@ -244,15 +271,10 @@ public class AppointmentControllerTest {
 
     @Test
     void patchConfirmShouldReturn200() throws Exception {
-        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
         var baseId = UUID.randomUUID();
 
-        var response = new AppointmentSummaryResponse(
+        var response = new AppointmentStatusUpdateResponse(
             baseId,
-            null,
-            null,
-            baseDateTime,
-            baseDateTime.plusMinutes(30),
             AppointmentStatus.CONFIRMED,
             null,
             null,
@@ -271,15 +293,10 @@ public class AppointmentControllerTest {
 
     @Test
     void patchNoShowShouldReturn200() throws Exception {
-        var baseDateTime = LocalDateTime.of(2026, 3, 4, 10, 0);
         var baseId = UUID.randomUUID();
 
-        var response = new AppointmentSummaryResponse(
+        var response = new AppointmentStatusUpdateResponse(
             baseId,
-            null,
-            null,
-            baseDateTime,
-            baseDateTime.plusMinutes(30),
             AppointmentStatus.NO_SHOW,
             null,
             null,

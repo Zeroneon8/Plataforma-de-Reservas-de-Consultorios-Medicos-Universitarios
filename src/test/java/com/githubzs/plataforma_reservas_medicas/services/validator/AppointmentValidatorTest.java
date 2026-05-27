@@ -156,6 +156,44 @@ class AppointmentValidatorTest {
 	}
 
 	@Test
+	void shouldReturnDoctorWhenDoctorExistsAndIsActiveByDocumentNumber() {
+		String documentNumber = "DOC-100";
+		Doctor doctor = Doctor.builder().documentNumber(documentNumber).status(DoctorStatus.ACTIVE).build();
+
+		when(doctorRepository.findByDocumentNumber(documentNumber)).thenReturn(Optional.of(doctor));
+
+		Doctor result = validator.validateDoctorExistsAndActiveByDocumentNumber(documentNumber);
+
+		assertSame(doctor, result);
+		verify(doctorRepository).findByDocumentNumber(documentNumber);
+	}
+
+	@Test
+	void shouldThrowNotFoundWhenDoctorDoesNotExistByDocumentNumber() {
+		String documentNumber = "DOC-404";
+
+		when(doctorRepository.findByDocumentNumber(documentNumber)).thenReturn(Optional.empty());
+
+		ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+				() -> validator.validateDoctorExistsAndActiveByDocumentNumber(documentNumber));
+
+		assertEquals("Doctor not found with document number " + documentNumber, ex.getMessage());
+	}
+
+	@Test
+	void shouldThrowConflictWhenDoctorIsNotActiveByDocumentNumber() {
+		String documentNumber = "DOC-200";
+		Doctor doctor = Doctor.builder().documentNumber(documentNumber).status(DoctorStatus.INACTIVE).build();
+
+		when(doctorRepository.findByDocumentNumber(documentNumber)).thenReturn(Optional.of(doctor));
+
+		ConflictException ex = assertThrows(ConflictException.class,
+				() -> validator.validateDoctorExistsAndActiveByDocumentNumber(documentNumber));
+
+		assertEquals("Doctor is not active", ex.getMessage());
+	}
+
+	@Test
 	void shouldReturnOfficeWhenOfficeExistsAndIsAvailable() {
 		UUID officeId = UUID.randomUUID();
 		Office office = Office.builder().id(officeId).status(OfficeStatus.AVAILABLE).build();

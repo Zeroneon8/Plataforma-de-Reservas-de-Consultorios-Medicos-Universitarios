@@ -23,6 +23,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID>,
 
     Optional<Appointment> findByIdAndStatus(UUID id, AppointmentStatus status);
 
+    Page<Appointment> findByDoctor_DocumentNumber(String documentNumber, Pageable pageable);
+
     // Comprobar que un paciente no tenga citas activas que se crucen en el tiempo
      @Query("""
      SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END 
