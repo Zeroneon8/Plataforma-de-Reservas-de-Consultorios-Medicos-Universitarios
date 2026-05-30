@@ -5,8 +5,10 @@ import java.io.Serializable;
 public class DashboardDtos {
     
     public record DashboardResponse(
-        long totalDoctors,
-        long totalPatients,
+        long activeDoctors,
+        long inactiveDoctors,
+        long activePatients,
+        long inactivePatients,
         long todayAppointments,
         long todayCompletedAppointments,
         long todayScheduledAppointments

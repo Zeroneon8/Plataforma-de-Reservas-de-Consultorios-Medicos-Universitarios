@@ -17,8 +17,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import tools.jackson.databind.ObjectMapper;
-
 import com.githubzs.plataforma_reservas_medicas.services.ReportService;
 import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.*;
 import com.githubzs.plataforma_reservas_medicas.api.error.ApiError.FieldViolation;
@@ -37,8 +35,6 @@ public class ReportControllerTest {
 
     @Autowired
     MockMvc mockMvc;
-    @Autowired
-    ObjectMapper objectMapper;
 
     @MockitoBean
     ReportService reportService;
