@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
+import java.time.LocalDate;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -264,6 +265,20 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setUpdatedAt(Instant.now());
         Appointment saved = appointmentRepository.save(appointment);
         return statusUpdateMapper.toStatusUpdateResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByStatusAndDate(AppointmentStatus status, LocalDate date) {
+        if (status == null) {
+            throw new ValidationException("Status is required",
+                List.of(new FieldViolation("status", "is required")));
+        }
+        if (date == null) {
+            throw new ValidationException("Date is required",
+                List.of(new FieldViolation("date", "is required")));
+        }
+        return appointmentRepository.countByStatusAndDate(status, date);
     }
 
 }

@@ -1,17 +1,13 @@
 package com.githubzs.plataforma_reservas_medicas.services;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCancelRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCompleteRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSearchRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentStatusUpdateResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.*;
+import com.githubzs.plataforma_reservas_medicas.domine.enums.AppointmentStatus;
 
 public interface AppointmentService {
 
@@ -30,5 +26,7 @@ public interface AppointmentService {
     AppointmentStatusUpdateResponse complete(UUID id, AppointmentCompleteRequest request);
 
     AppointmentStatusUpdateResponse markNoShow(UUID id);
+
+    long countByStatusAndDate(AppointmentStatus status, LocalDate date);
     
 }

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -796,6 +797,35 @@ class AppointmentServiceImplTest {
         assertThrows(ConflictException.class, () -> service.markNoShow(appointmentId));
         verify(validator).validateAppointmentExists(appointmentId);
         verify(appointmentRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldCountByStatusAndDateWhenValid() {
+        var date = LocalDate.of(2026, 3, 5);
+        var status = AppointmentStatus.SCHEDULED;
+
+        when(appointmentRepository.countByStatusAndDate(status, date)).thenReturn(4L);
+
+        var result = service.countByStatusAndDate(status, date);
+
+        assertEquals(4L, result);
+        verify(appointmentRepository).countByStatusAndDate(AppointmentStatus.SCHEDULED, date);
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenStatusIsNullForCountByStatusAndDate() {
+        var date = LocalDate.of(2026, 3, 5);
+
+        assertThrows(ValidationException.class, () -> service.countByStatusAndDate(null, date));
+        verify(appointmentRepository, never()).countByStatusAndDate(any(), any());
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenDateIsNullForCountByStatusAndDate() {
+        var status = AppointmentStatus.SCHEDULED;
+
+        assertThrows(ValidationException.class, () -> service.countByStatusAndDate(status, null));
+        verify(appointmentRepository, never()).countByStatusAndDate(any(), any());
     }
 
 }

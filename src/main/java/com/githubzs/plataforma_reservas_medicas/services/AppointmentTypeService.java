@@ -3,11 +3,7 @@ package com.githubzs.plataforma_reservas_medicas.services;
 import java.util.List;
 import java.util.UUID;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.AppointmentTypeSummaryResponse;
-
-
+import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentTypeDtos.*;
 
 public interface AppointmentTypeService {
     

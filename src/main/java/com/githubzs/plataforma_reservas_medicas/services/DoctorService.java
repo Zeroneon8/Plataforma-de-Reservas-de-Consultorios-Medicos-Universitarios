@@ -5,10 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorSummaryResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.DoctorUpdateRequest;
+import com.githubzs.plataforma_reservas_medicas.api.dto.DoctorDtos.*;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 public interface DoctorService {

@@ -9,8 +9,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeCreateRequest;
-import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.OfficeResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.OfficeDtos.*;
 
 public interface OfficeService {
 

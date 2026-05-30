@@ -3,9 +3,7 @@ package com.githubzs.plataforma_reservas_medicas.services;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.DoctorProductivityResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.NoShowPatientResponse;
-import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.OfficeOccupancyResponse;
+import com.githubzs.plataforma_reservas_medicas.api.dto.ReportDtos.*;
 
 public interface ReportService {
 
