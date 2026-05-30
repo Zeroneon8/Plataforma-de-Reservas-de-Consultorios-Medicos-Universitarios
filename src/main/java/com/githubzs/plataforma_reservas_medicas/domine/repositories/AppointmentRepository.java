@@ -1,9 +1,10 @@
 package com.githubzs.plataforma_reservas_medicas.domine.repositories;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -82,6 +83,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID>,
         @Param("doctorId") UUID doctorId,
         @Param("from") LocalDateTime from,
         @Param("to") LocalDateTime to
+    );
+
+    // Contar citas con un estado especifico en una fecha especifica
+    @Query("""
+     SELECT COUNT(a) FROM Appointment a
+     WHERE a.status = :status
+     AND DATE(a.startAt) = :date        
+    """)
+    long countByStatusAndDate(
+        @Param("status") AppointmentStatus status,
+        @Param("date") LocalDate date
     );
 
 }

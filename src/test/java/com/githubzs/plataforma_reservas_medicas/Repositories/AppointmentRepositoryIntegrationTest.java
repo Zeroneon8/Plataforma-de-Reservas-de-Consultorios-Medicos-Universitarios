@@ -1,11 +1,11 @@
 package com.githubzs.plataforma_reservas_medicas.Repositories;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -636,6 +636,40 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
 
         // Then
         assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Appointment: Cuenta citas con estado específico en una fecha específica")
+    void shouldCountAppointmentsByStatusAndDate() {
+        // Given
+        var targetDate = LocalDate.of(2026, 3, 4);
+
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(2), AppointmentStatus.CANCELLED));
+
+        // When
+        var count = appointmentRepository.countByStatusAndDate(AppointmentStatus.CONFIRMED, targetDate);
+
+        // Then
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Appointment: Devuelve cero cuando no hay citas con el estado o fecha especificados")
+    void shouldReturnZeroWhenNoAppointmentsMatchStatusOrDate() {
+        // Given
+        var targetDate = LocalDate.of(2026, 3, 4);
+
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CANCELLED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
+
+        // When
+        var count = appointmentRepository.countByStatusAndDate(AppointmentStatus.CONFIRMED, targetDate);
+
+        // Then
+        assertThat(count).isZero();
     }
 
     @Test
