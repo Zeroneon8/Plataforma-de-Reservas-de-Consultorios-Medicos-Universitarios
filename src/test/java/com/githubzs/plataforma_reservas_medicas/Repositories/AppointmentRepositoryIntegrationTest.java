@@ -673,6 +673,39 @@ class AppointmentRepositoryIntegrationTest extends AbstractRepositoryIT {
     }
 
     @Test
+    @DisplayName("Appointment: Cuenta citas en una fecha especifica")
+    void shouldCountAppointmentsByDate() {
+        // Given
+        var targetDate = LocalDate.of(2026, 3, 4);
+
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime, AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusHours(1), AppointmentStatus.CANCELLED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.minusDays(1), AppointmentStatus.SCHEDULED));
+
+        // When
+        var count = appointmentRepository.countByDate(targetDate);
+
+        // Then
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Appointment: Devuelve cero cuando no hay citas en la fecha especificada")
+    void shouldReturnZeroWhenNoAppointmentsMatchDate() {
+        // Given
+        var targetDate = LocalDate.of(2026, 3, 4);
+
+        appointmentRepository.save(buildDefaultAppointment(baseDateTime.plusDays(1), AppointmentStatus.CONFIRMED));
+
+        // When
+        var count = appointmentRepository.countByDate(targetDate);
+
+        // Then
+        assertThat(count).isZero();
+    }
+
+    @Test
     @DisplayName("Appointment: Encuentra citas filtrando por todos los parámetros especificados")
     void shouldFindAllWithFiltersWhenAllParametersMatch() {
         // Given

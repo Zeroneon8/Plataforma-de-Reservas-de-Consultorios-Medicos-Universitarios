@@ -274,11 +274,24 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ValidationException("Status is required",
                 List.of(new FieldViolation("status", "is required")));
         }
+
         if (date == null) {
             throw new ValidationException("Date is required",
                 List.of(new FieldViolation("date", "is required")));
         }
+
         return appointmentRepository.countByStatusAndDate(status, date);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByDate(LocalDate date) {
+        if (date == null) {
+            throw new ValidationException("Date is required",
+                List.of(new FieldViolation("date", "is required")));
+        }
+        
+        return appointmentRepository.countByDate(date);
     }
 
 }

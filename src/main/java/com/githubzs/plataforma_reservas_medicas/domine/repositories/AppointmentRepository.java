@@ -96,4 +96,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID>,
         @Param("date") LocalDate date
     );
 
+    // Contar todas las citas en una fecha especifica (cuenta solo las que empiecen en la fecha, no las que empiezan antes y terminan en la fecha)
+    @Query("""
+     SELECT COUNT(a) FROM Appointment a
+     WHERE DATE(a.startAt) = :date        
+    """)
+    long countByDate(
+        @Param("date") LocalDate date
+    );
+
 }

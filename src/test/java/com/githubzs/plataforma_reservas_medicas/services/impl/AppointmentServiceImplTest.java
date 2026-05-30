@@ -828,4 +828,22 @@ class AppointmentServiceImplTest {
         verify(appointmentRepository, never()).countByStatusAndDate(any(), any());
     }
 
+    @Test
+    void shouldCountByDateWhenValid() {
+        var date = LocalDate.of(2026, 3, 5);
+
+        when(appointmentRepository.countByDate(date)).thenReturn(3L);
+
+        var result = service.countByDate(date);
+
+        assertEquals(3L, result);
+        verify(appointmentRepository).countByDate(date);
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenDateIsNullForCountByDate() {
+        assertThrows(ValidationException.class, () -> service.countByDate(null));
+        verify(appointmentRepository, never()).countByDate(any());
+    }
+
 }

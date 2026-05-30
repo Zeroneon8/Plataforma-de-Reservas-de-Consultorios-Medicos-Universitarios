@@ -28,5 +28,7 @@ public interface AppointmentService {
     AppointmentStatusUpdateResponse markNoShow(UUID id);
 
     long countByStatusAndDate(AppointmentStatus status, LocalDate date);
+
+    long countByDate(LocalDate date);
     
 }
