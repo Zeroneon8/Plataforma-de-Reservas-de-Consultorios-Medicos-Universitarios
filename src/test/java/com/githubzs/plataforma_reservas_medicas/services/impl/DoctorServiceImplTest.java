@@ -466,23 +466,29 @@ class DoctorServiceImplTest {
     }
 
     @Test
-    void shouldCountAllDoctorsWhenRepositoryReturnsValue() {
-        when(doctorRepository.count()).thenReturn(7L);
+    void shouldCountDoctorsByStatusWhenRepositoryReturnsValue() {
+        when(doctorRepository.countByStatus(DoctorStatus.ACTIVE)).thenReturn(7L);
 
-        var result = service.countAll();
+        var result = service.countByStatus(DoctorStatus.ACTIVE);
 
         assertEquals(7L, result);
-        verify(doctorRepository).count();
+        verify(doctorRepository).countByStatus(DoctorStatus.ACTIVE);
     }
 
     @Test
-    void shouldReturnZeroWhenRepositoryReturnsZero() {
-        when(doctorRepository.count()).thenReturn(0L);
+    void shouldReturnZeroWhenRepositoryReturnsZeroForCountByStatus() {
+        when(doctorRepository.countByStatus(DoctorStatus.INACTIVE)).thenReturn(0L);
 
-        var result = service.countAll();
+        var result = service.countByStatus(DoctorStatus.INACTIVE);
 
         assertEquals(0L, result);
-        verify(doctorRepository).count();
+        verify(doctorRepository).countByStatus(DoctorStatus.INACTIVE);
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenStatusIsNullForCountByStatus() {
+        assertThrows(ValidationException.class, () -> service.countByStatus(null));
+        verify(doctorRepository, never()).countByStatus(any());
     }
 
 }

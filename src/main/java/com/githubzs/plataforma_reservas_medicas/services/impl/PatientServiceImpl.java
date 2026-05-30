@@ -157,8 +157,13 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     @Transactional(readOnly = true)
-    public long countAll() {
-        return patientRepository.count();
+    public long countByStatus(PatientStatus status) {
+        if (status == null) {
+            throw new ValidationException("Patient status is required",
+                List.of(new FieldViolation("status", "is required")));
+        }
+
+        return patientRepository.countByStatus(status);
     }
 
 }

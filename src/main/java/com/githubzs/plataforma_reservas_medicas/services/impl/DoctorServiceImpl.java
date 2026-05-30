@@ -196,8 +196,13 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     @Transactional(readOnly = true)
-    public long countAll() {
-        return doctorRepository.count();
+    public long countByStatus(DoctorStatus status) {
+        if (status == null) {
+            throw new ValidationException("Doctor status is required",
+                List.of(new FieldViolation("status", "is required")));
+        }
+
+        return doctorRepository.countByStatus(status);
     }
 
 }

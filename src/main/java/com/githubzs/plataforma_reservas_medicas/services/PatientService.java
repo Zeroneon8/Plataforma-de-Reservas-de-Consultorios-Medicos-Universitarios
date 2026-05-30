@@ -20,6 +20,6 @@ public interface PatientService {
 
     PatientResponse changeStatus(UUID id, PatientStatus status); 
 
-    long countAll();
+    long countByStatus(PatientStatus status);
 
 }

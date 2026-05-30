@@ -25,6 +25,8 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
 
     Optional<Patient> findByDocumentNumber(String documentNumber);
 
+    long countByStatus(PatientStatus status);
+
     // Contar cantidad de inasistencias (NO_SHOW) de un paciente en un rango de fechas
     @Query("""
      SELECT COUNT(a) FROM Appointment a

@@ -237,23 +237,29 @@ class PatientServiceImplTest {
     }
 
     @Test
-    void shouldCountAllPatientsWhenRepositoryReturnsValue() {
-        when(repository.count()).thenReturn(5L);
+    void shouldCountPatientsByStatusWhenRepositoryReturnsValue() {
+        when(repository.countByStatus(PatientStatus.ACTIVE)).thenReturn(5L);
 
-        var result = service.countAll();
+        var result = service.countByStatus(PatientStatus.ACTIVE);
 
         assertEquals(5L, result);
-        verify(repository).count();
+        verify(repository).countByStatus(PatientStatus.ACTIVE);
     }
 
     @Test
-    void shouldReturnZeroWhenRepositoryReturnsZero() {
-        when(repository.count()).thenReturn(0L);
+    void shouldReturnZeroWhenRepositoryReturnsZeroForCountByStatus() {
+        when(repository.countByStatus(PatientStatus.INACTIVE)).thenReturn(0L);
 
-        var result = service.countAll();
+        var result = service.countByStatus(PatientStatus.INACTIVE);
 
         assertEquals(0L, result);
-        verify(repository).count();
+        verify(repository).countByStatus(PatientStatus.INACTIVE);
+    }
+
+    @Test
+    void shouldThrowValidationExceptionWhenStatusIsNullForCountByStatus() {
+        assertThrows(ValidationException.class, () -> service.countByStatus(null));
+        verify(repository, never()).countByStatus(any());
     }
 
 }
