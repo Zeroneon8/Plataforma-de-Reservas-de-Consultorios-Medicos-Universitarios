@@ -194,4 +194,10 @@ public class DoctorServiceImpl implements DoctorService {
         return summaryMapper.toSummaryResponse(doctorRepository.save(doctor));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return doctorRepository.count();
+    }
+
 }

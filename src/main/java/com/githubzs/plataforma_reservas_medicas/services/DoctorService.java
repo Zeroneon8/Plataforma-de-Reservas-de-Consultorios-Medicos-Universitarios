@@ -24,4 +24,6 @@ public interface DoctorService {
 
     DoctorSummaryResponse changeStatus(UUID doctorId, DoctorStatus status); 
 
+    long countAll();
+
 }

@@ -155,4 +155,10 @@ public class PatientServiceImpl implements PatientService {
         return mapper.toResponse(saved);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return patientRepository.count();
+    }
+
 }

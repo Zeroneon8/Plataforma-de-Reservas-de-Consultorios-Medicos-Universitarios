@@ -235,4 +235,25 @@ class PatientServiceImplTest {
         assertEquals(PatientStatus.SUSPENDED, result.status());
         verify(repository).save(any(Patient.class));
     }
+
+    @Test
+    void shouldCountAllPatientsWhenRepositoryReturnsValue() {
+        when(repository.count()).thenReturn(5L);
+
+        var result = service.countAll();
+
+        assertEquals(5L, result);
+        verify(repository).count();
+    }
+
+    @Test
+    void shouldReturnZeroWhenRepositoryReturnsZero() {
+        when(repository.count()).thenReturn(0L);
+
+        var result = service.countAll();
+
+        assertEquals(0L, result);
+        verify(repository).count();
+    }
+
 }

@@ -465,4 +465,24 @@ class DoctorServiceImplTest {
         verify(doctorRepository, never()).save(any());
     }
 
+    @Test
+    void shouldCountAllDoctorsWhenRepositoryReturnsValue() {
+        when(doctorRepository.count()).thenReturn(7L);
+
+        var result = service.countAll();
+
+        assertEquals(7L, result);
+        verify(doctorRepository).count();
+    }
+
+    @Test
+    void shouldReturnZeroWhenRepositoryReturnsZero() {
+        when(doctorRepository.count()).thenReturn(0L);
+
+        var result = service.countAll();
+
+        assertEquals(0L, result);
+        verify(doctorRepository).count();
+    }
+
 }

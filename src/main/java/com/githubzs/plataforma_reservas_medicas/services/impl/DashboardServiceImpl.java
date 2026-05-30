@@ -9,7 +9,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.DashboardDtos.*;
 import com.githubzs.plataforma_reservas_medicas.services.DashboardService;
 
 import lombok.RequiredArgsConstructor;
-/*TODO Implementar el método getDashboardStats en DashboardServiceImpl para obtener las estadísticas del dashboard.
+/* TODO 
 @Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
