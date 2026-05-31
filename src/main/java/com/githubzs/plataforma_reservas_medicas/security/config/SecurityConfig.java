@@ -39,13 +39,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                 // Endpoints protegidos por rol
+                .requestMatchers(HttpMethod.GET, "/api/appointments/mine").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.GET, "/api/patients", "/api/patients/{id}", "/api/doctors", "/api/doctors/{id}",
                                 "/api/specialties", "/api/offices", "/api/appointment-types", "/api/doctors/{doctorId}/schedules",
                                 "/api/appointments/{id}", "/api/availability/doctors/{doctorId}",
                                 "/api/availability/doctors/{doctorId}/appointment-types/{appointmentTypeId}").hasAnyRole("ADMIN", "STAFF")            
                 .requestMatchers(HttpMethod.PATCH, "/api/appointments/{id}/confirm", "/api/appointments/{id}/cancel").hasAnyRole("ADMIN", "STAFF")
                 .requestMatchers(HttpMethod.PATCH, "/api/appointments/{id}/complete").hasRole("DOCTOR")
-                .requestMatchers(HttpMethod.GET, "/api/appointments/mine").hasRole("DOCTOR")
                 .requestMatchers(HttpMethod.PATCH, "/api/patients/{id}", "/api/doctors/{id}", "/api/offices/{id}",
                                 "/api/appointments/{id}/no-show").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/appointments").hasAnyRole("ADMIN", "STAFF")
