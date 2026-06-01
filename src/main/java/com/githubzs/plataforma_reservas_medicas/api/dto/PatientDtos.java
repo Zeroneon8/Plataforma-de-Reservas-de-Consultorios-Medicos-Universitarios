@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.githubzs.plataforma_reservas_medicas.api.dto.AppointmentDtos.AppointmentSummaryResponse;
 import com.githubzs.plataforma_reservas_medicas.domine.enums.PatientStatus;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -19,6 +20,7 @@ public class PatientDtos {
         @Size(max = 100)
         String fullName, 
         @NotBlank
+        @Email
         @Size(max = 320)
         String email,
         @NotBlank
@@ -35,6 +37,7 @@ public class PatientDtos {
         @Size(max = 100)
         String fullName,
         @Size(max = 320)
+        @Email
         String email,
         @Size(max = 20)
         String phoneNumber,

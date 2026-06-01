@@ -11,6 +11,7 @@ import com.githubzs.plataforma_reservas_medicas.api.dto.SpecialtyDtos.SpecialtyS
 import com.githubzs.plataforma_reservas_medicas.domine.enums.DoctorStatus;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -21,6 +22,7 @@ public class DoctorDtos {
         @Size(max = 100)
         String fullName, 
         @NotBlank
+        @Email
         @Size(max = 320)
         String email,
         @NotBlank
@@ -37,6 +39,7 @@ public class DoctorDtos {
         @Size(max = 100)
         String fullName,
         @Size(max = 320)
+        @Email
         String email,
         UUID specialtyId,
         DoctorStatus status
